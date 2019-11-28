@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// Parse takes a string and a separator, splits the line by seperators
+// (say , or \n) and then returns a slice of numbers
 func Parse(line string, sep string) []int {
 	var ans []int
 	for _, ch := range strings.Split(line, sep) {

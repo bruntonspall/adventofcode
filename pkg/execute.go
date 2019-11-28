@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Execute runs all the tests, and then against the actual puzzle input
 func Execute(run func(string) (string, string), tests TestCases, puzzle string, verbose bool) {
 	if tests != nil {
 		tests.Run(run, !verbose)
