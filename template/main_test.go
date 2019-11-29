@@ -14,6 +14,6 @@ var tests = pkg.TestCases{
 	},
 }
 
-func TestMain(m *testing.M) {
-	tests.Run(run, false)
+func TestMain(t *testing.T) {
+	tests.Run2(run, t, false)
 }

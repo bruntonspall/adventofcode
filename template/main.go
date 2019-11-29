@@ -5,13 +5,12 @@ import (
 )
 
 // returns part1 and part2
-func run(input string) (string, string) {
-	// part1
+func run(input string) (part1 string, part2 string) {
 	// Parse input and return output
-	part1 := ""
+	part1 = ""
 	// Parse input and return output
-	part2 := ""
-	return part1, part2
+	part2 = ""
+	return
 }
 
 func main() {
