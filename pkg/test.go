@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"os"
+	"testing"
 )
 
 // TestCases is a Vector of test cases
@@ -32,5 +33,23 @@ func (t TestCases) Run(fn func(string) (string, string), hideInput bool) {
 			fmt.Println(" - PART2: ", part2, " but expected ", test.ExpectedPart2)
 			os.Exit(1)
 		}
+	}
+}
+
+// Run2 works with the testing framework to run each test
+func (t TestCases) Run2(fn func(string) (string, string), tc *testing.T, hideInput bool) {
+	for _, test := range t {
+		tc.Run(test.Input, func(t *testing.T) {
+			part1, part2 := fn(test.Input)
+			passedPart1 := part1 == test.ExpectedPart1 || test.ExpectedPart1 == ""
+			passedPart2 := part2 == test.ExpectedPart2 || test.ExpectedPart2 == ""
+
+			if !passedPart1 {
+				t.Errorf("PART1: %q but expected %q", part1, test.ExpectedPart1)
+			}
+			if !passedPart2 {
+				t.Errorf("PART2: %q but expected %q", part2, test.ExpectedPart2)
+			}
+		})
 	}
 }
