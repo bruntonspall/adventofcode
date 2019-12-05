@@ -16,7 +16,7 @@ func run(input string) (part1 string, part2 string) {
 		icode, _ := strconv.Atoi(code)
 		memory = append(memory, icode)
 	}
-	var icc IntCodeComputer
+	var icc pkg.IntCodeComputer
 	icc.Initialise(memory)
 	icc.Memory[1] = 12
 	icc.Memory[2] = 2

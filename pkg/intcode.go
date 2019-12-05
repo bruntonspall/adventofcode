@@ -1,4 +1,4 @@
-package main
+package pkg
 
 // IntCodeComputer is a basic computer that can run int code
 type IntCodeComputer struct {
