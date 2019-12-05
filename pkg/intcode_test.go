@@ -68,3 +68,27 @@ func TestInitialise(t *testing.T) {
 		})
 	}
 }
+
+func TestParameterModes(t *testing.T) {
+	cases := []struct {
+		in  IntCodeComputer
+		out IntCodeComputer
+	}{
+		{IntCodeComputer{[]int{1, 5, 6, 7, 99, 20, 30, 0}, 0}, IntCodeComputer{[]int{1, 5, 6, 7, 99, 20, 30, 50}, 4}},
+		{IntCodeComputer{[]int{1101, 5, 6, 7, 99, 20, 30, 0}, 0}, IntCodeComputer{[]int{1101, 5, 6, 7, 99, 20, 30, 11}, 4}},
+		{IntCodeComputer{[]int{1001, 5, 6, 7, 99, 20, 30, 0}, 0}, IntCodeComputer{[]int{1001, 5, 6, 7, 99, 20, 30, 26}, 4}},
+		{IntCodeComputer{[]int{101, 5, 6, 7, 99, 20, 30, 0}, 0}, IntCodeComputer{[]int{101, 5, 6, 7, 99, 20, 30, 35}, 4}},
+		{IntCodeComputer{[]int{2, 5, 6, 7, 99, 20, 30, 0}, 0}, IntCodeComputer{[]int{2, 5, 6, 7, 99, 20, 30, 600}, 4}},
+		{IntCodeComputer{[]int{1102, 5, 6, 7, 99, 20, 30, 0}, 0}, IntCodeComputer{[]int{1102, 5, 6, 7, 99, 20, 30, 30}, 4}},
+		{IntCodeComputer{[]int{1002, 5, 6, 7, 99, 20, 30, 0}, 0}, IntCodeComputer{[]int{1002, 5, 6, 7, 99, 20, 30, 120}, 4}},
+		{IntCodeComputer{[]int{102, 5, 6, 7, 99, 20, 30, 0}, 0}, IntCodeComputer{[]int{102, 5, 6, 7, 99, 20, 30, 150}, 4}},
+	}
+	for _, tt := range cases {
+		t.Run(fmt.Sprintf("%v", tt.in), func(t *testing.T) {
+			tt.in.Advance()
+			if !cmp.Equal(tt.in, tt.out) {
+				t.Errorf("got %v, want %v", tt.in, tt.out)
+			}
+		})
+	}
+}
