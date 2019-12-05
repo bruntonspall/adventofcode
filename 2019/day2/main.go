@@ -24,6 +24,11 @@ func run(input string) (part1 string, part2 string) {
 	part1 = strconv.Itoa(icc.Memory[0])
 	// Parse input and return output
 	// Test all possible noun and verb combinations until we find result
+	if len(memory) < 100 {
+		for i := 0; i < 100; i++ {
+			memory = append(memory, 99)
+		}
+	}
 	for noun := 0; noun < 100; noun++ {
 		for verb := 0; verb < 100; verb++ {
 			icc.Initialise(memory)
