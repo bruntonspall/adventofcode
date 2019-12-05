@@ -14,6 +14,7 @@ var tests = pkg.TestCases{
 	},
 }
 
+// Test fails because searching all nouns wont work without a program over 100 memory locations long
 func TestMain(t *testing.T) {
 	tests.Run2(run, t, false)
 }

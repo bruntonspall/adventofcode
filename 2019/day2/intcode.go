@@ -1,20 +1,33 @@
 package main
 
-func advance(memory []int, pc int) []int {
-	switch memory[pc] {
-	case 1:
-		memory[memory[pc+3]] = memory[memory[pc+1]] + memory[memory[pc+2]]
-	case 2:
-		memory[memory[pc+3]] = memory[memory[pc+1]] * memory[memory[pc+2]]
-	}
-	return memory
+// IntCodeComputer is a basic computer that can run int code
+type IntCodeComputer struct {
+	Memory []int
+	PC     int
 }
 
-func runIntCode(memory []int) []int {
-	pc := 0
-	for memory[pc] != 99 {
-		memory = advance(memory, pc)
-		pc += 4
+// Initialise the computer with a memory slice
+func (icc *IntCodeComputer) Initialise(memory []int) {
+	icc.Memory = make([]int, len(memory))
+	copy(icc.Memory[:], memory)
+	icc.PC = 0
+}
+
+// Advance operates on the computer, executing the next instruction
+func (icc *IntCodeComputer) Advance() {
+	switch icc.Memory[icc.PC] {
+	case 1:
+		icc.Memory[icc.Memory[icc.PC+3]] = icc.Memory[icc.Memory[icc.PC+1]] + icc.Memory[icc.Memory[icc.PC+2]]
+		icc.PC += 4
+	case 2:
+		icc.Memory[icc.Memory[icc.PC+3]] = icc.Memory[icc.Memory[icc.PC+1]] * icc.Memory[icc.Memory[icc.PC+2]]
+		icc.PC += 4
 	}
-	return memory
+}
+
+// Run operates the computer until it reaches a halt instruction
+func (icc *IntCodeComputer) Run() {
+	for icc.Memory[icc.PC] != 99 {
+		icc.Advance()
+	}
 }
