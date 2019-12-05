@@ -21,7 +21,10 @@ func run(input string) (part1 string, part2 string) {
 	icc.Run()
 	part1 = fmt.Sprintf("%v", icc.Output)
 	// Parse input and return output
-	part2 = ""
+	icc.Initialise(memory)
+	icc.Input = []int{5}
+	icc.Run()
+	part2 = fmt.Sprintf("%v", icc.Output)
 	return
 }
 
