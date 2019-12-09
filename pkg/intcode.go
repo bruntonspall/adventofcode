@@ -54,7 +54,7 @@ func (icc *IntCodeComputer) getParam(index int) int {
 	case 1:
 		memloc = icc.PC + index
 	case 2:
-		memloc = icc.PC + icc.base + index
+		memloc = icc.base + icc.Memory[icc.PC+index]
 	}
 	return icc.Memory[memloc]
 
@@ -71,7 +71,7 @@ func (icc *IntCodeComputer) setParam(index int, value int) {
 	case 1:
 		memloc = icc.PC + index
 	case 2:
-		memloc = icc.PC + icc.base + index
+		memloc = icc.base + icc.Memory[icc.PC+index]
 	}
 
 	icc.Memory[memloc] = value
@@ -129,6 +129,9 @@ func (icc *IntCodeComputer) Advance() {
 			icc.setParam(3, 0)
 		}
 		icc.PC += 4
+	case 9:
+		icc.base += icc.getParam(1)
+		icc.PC += 2
 	case 99:
 		close(icc.Output)
 		fmt.Printf("%v: End\n", icc.id)

@@ -45,8 +45,10 @@ func TestRunProgram(t *testing.T) {
 			[]int{30, 1, 1, 4, 2, 5, 6, 0, 99}, 8},
 		{[]int{1101, 100, -1, 4, 0},
 			[]int{1101, 100, -1, 4, 99}, 4},
-		{[]int{1, 0, 0, 10, 99},
-			[]int{1, 0, 0, 10, 99, 0, 0, 0, 0, 0, 2}, 4},
+		{[]int{22201, 1, 1, 5, 99},
+			[]int{22201, 1, 1, 5, 99, 2}, 4},
+		{[]int{109, 7, 22201, 0, 0, 0, 99, 2},
+			[]int{109, 7, 22201, 0, 0, 0, 99, 4}, 6},
 	}
 	for _, tt := range cases {
 		t.Run(fmt.Sprintf("%v", tt.program), func(t *testing.T) {
@@ -57,6 +59,31 @@ func TestRunProgram(t *testing.T) {
 				if !cmp.Equal(mapToArray(cpu.Memory), tt.out) || !cmp.Equal(cpu.PC, tt.pc) {
 					t.Errorf("got %v, want %v", cpu.Memory, tt.out)
 				}
+			}
+		})
+	}
+}
+
+func TestRelativeMode(t *testing.T) {
+	cases := []struct {
+		base    int
+		program map[int]int
+		out     map[int]int
+	}{
+		{0, map[int]int{0: 00001, 1: 10, 2: 11, 3: 12, 10: 5, 11: 6, 12: 7}, map[int]int{0: 00001, 1: 10, 2: 11, 3: 12, 10: 5, 11: 6, 12: 11}},
+		{0, map[int]int{0: 11101, 1: 10, 2: 11, 3: 12, 10: 5, 11: 6, 12: 7}, map[int]int{0: 11101, 1: 10, 2: 11, 3: 21, 10: 5, 11: 6, 12: 7}},
+		{0, map[int]int{0: 22201, 1: 10, 2: 11, 3: 12, 10: 5, 11: 6, 12: 7}, map[int]int{0: 22201, 1: 10, 2: 11, 3: 12, 10: 5, 11: 6, 12: 11}},
+		{100, map[int]int{0: 22201, 1: 10, 2: 11, 3: 12, 110: 5, 111: 6, 112: 7}, map[int]int{0: 22201, 1: 10, 2: 11, 3: 12, 110: 5, 111: 6, 112: 11}},
+	}
+	for _, tt := range cases {
+		t.Run(fmt.Sprintf("%v", tt.program), func(t *testing.T) {
+			cpu := NewIntCodeComputer(nil)
+			cpu.Memory = tt.program
+			cpu.base = tt.base
+			cpu.PC = 0
+			cpu.Advance()
+			if !cmp.Equal(cpu.Memory, tt.out) {
+				t.Errorf("got %v, want %v", cpu.Memory, tt.out)
 			}
 		})
 	}
@@ -103,8 +130,8 @@ func TestParameterModes(t *testing.T) {
 		{[]int{1102, 5, 6, 7, 99, 20, 30, 0}, []int{1102, 5, 6, 7, 99, 20, 30, 30}},
 		{[]int{1002, 5, 6, 7, 99, 20, 30, 0}, []int{1002, 5, 6, 7, 99, 20, 30, 120}},
 		{[]int{102, 5, 6, 7, 99, 20, 30, 0}, []int{102, 5, 6, 7, 99, 20, 30, 150}},
-		{[]int{201, 5, 6, 7, 99, 20, 30, 0}, []int{201, 5, 6, 7, 99, 20, 30, 35}},
-		{[]int{2201, 5, 6, 7, 99, 20, 30, 0}, []int{2201, 5, 6, 7, 99, 20, 30, 11}},
+		{[]int{201, 5, 6, 7, 99, 20, 30, 0}, []int{201, 5, 6, 7, 99, 20, 30, 50}},
+		{[]int{2201, 5, 6, 7, 99, 20, 30, 0}, []int{2201, 5, 6, 7, 99, 20, 30, 50}},
 	}
 	for _, tt := range cases {
 		t.Run(fmt.Sprintf("%v", tt.in), func(t *testing.T) {
@@ -189,6 +216,27 @@ func TestProgram(t *testing.T) {
 			icc.AddInput(tt.in)
 			if !cmp.Equal(icc.GetOutput(), tt.out) {
 				t.Errorf("got %v, want %v", icc.Output, tt.out)
+			}
+		})
+	}
+}
+
+func TestDay9Programs(t *testing.T) {
+	cases := []struct {
+		program []int
+		out     []int
+	}{
+		{[]int{109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99}, []int{109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99}},
+		{[]int{1102, 34915192, 34915192, 7, 4, 7, 99, 0}, []int{1219070632396864}},
+		{[]int{104, 1125899906842624, 99}, []int{1125899906842624}},
+	}
+	for _, tt := range cases {
+		t.Run(fmt.Sprintf("%v", tt.program), func(t *testing.T) {
+			icc := NewIntCodeComputer(tt.program)
+			icc.Run()
+			out := icc.GetOutputs()
+			if !cmp.Equal(out, tt.out) {
+				t.Errorf("got %v, want %v", out, tt.out)
 			}
 		})
 	}
