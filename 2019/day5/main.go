@@ -15,16 +15,15 @@ func run(input string) (part1 string, part2 string) {
 		icode, _ := strconv.Atoi(code)
 		memory = append(memory, icode)
 	}
-	var icc pkg.IntCodeComputer
-	icc.Initialise(memory)
-	icc.Input = []int{1}
+	var icc = pkg.NewIntCodeComputer(memory)
 	icc.Run()
-	part1 = fmt.Sprintf("%v", icc.Output)
+	icc.AddInput(1)
+	part1 = fmt.Sprintf("%v", icc.GetOutputs())
 	// Parse input and return output
-	icc.Initialise(memory)
-	icc.Input = []int{5}
+	icc = pkg.NewIntCodeComputer(memory)
 	icc.Run()
-	part2 = fmt.Sprintf("%v", icc.Output)
+	icc.AddInput(5)
+	part2 = fmt.Sprintf("%v", icc.GetOutputs())
 	return
 }
 

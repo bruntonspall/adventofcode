@@ -16,11 +16,10 @@ func run(input string) (part1 string, part2 string) {
 		icode, _ := strconv.Atoi(code)
 		memory = append(memory, icode)
 	}
-	var icc pkg.IntCodeComputer
-	icc.Initialise(memory)
+	icc := pkg.NewIntCodeComputer(memory)
 	icc.Memory[1] = 12
 	icc.Memory[2] = 2
-	icc.Run()
+	icc.SyncRun()
 	part1 = strconv.Itoa(icc.Memory[0])
 	// Parse input and return output
 	// Test all possible noun and verb combinations until we find result
@@ -31,7 +30,7 @@ func run(input string) (part1 string, part2 string) {
 	}
 	for noun := 0; noun < 100; noun++ {
 		for verb := 0; verb < 100; verb++ {
-			icc.Initialise(memory)
+			icc = pkg.NewIntCodeComputer(memory)
 			icc.Memory[1] = noun
 			icc.Memory[2] = verb
 			icc.Run()
