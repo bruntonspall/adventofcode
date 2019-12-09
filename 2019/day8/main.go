@@ -18,6 +18,7 @@ func CountOccurences(data []int, search int) (count int) {
 	return
 }
 
+// Image holds pixel data for an image
 type Image struct {
 	layers [][]int
 	width  int
@@ -46,6 +47,7 @@ func (img *Image) GetPixel(x int, y int) int {
 	return 0
 }
 
+// RenderToText returns a printable representation of the black and white bitmap
 func (img *Image) RenderToText() []string {
 	ret := make([]string, img.height)
 	for y := 0; y < img.height; y++ {
