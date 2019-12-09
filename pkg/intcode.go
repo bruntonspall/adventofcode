@@ -14,6 +14,7 @@ type IntCodeComputer struct {
 	Input  chan int
 	Output chan int
 	id     int
+	base   int
 }
 
 func NewIntCodeComputer(memory []int) *IntCodeComputer {
@@ -40,25 +41,36 @@ func (icc *IntCodeComputer) GetOutput() int {
 func (icc *IntCodeComputer) getParam(index int) int {
 	code := icc.Memory[icc.PC]
 	pnum := int(math.Pow10(index + 1))
-	var mode bool = (code/pnum)%2 != 0
-
-	if mode {
-		return icc.Memory[icc.PC+index]
+	mode := (code / pnum) % 10
+	var memloc int
+	switch mode {
+	case 0:
+		memloc = icc.Memory[icc.PC+index]
+	case 1:
+		memloc = icc.PC + index
+	case 2:
+		memloc = icc.PC + icc.base + index
 	}
-	return icc.Memory[icc.Memory[icc.PC+index]]
+	return icc.Memory[memloc]
 
 }
 
 func (icc *IntCodeComputer) setParam(index int, value int) {
 	code := icc.Memory[icc.PC]
 	pnum := int(math.Pow10(index + 1))
-	var mode bool = (code/pnum)%2 != 0
-
-	if mode {
-		icc.Memory[icc.PC+index] = value
-	} else {
-		icc.Memory[icc.Memory[icc.PC+index]] = value
+	mode := (code / pnum) % 10
+	var memloc int
+	switch mode {
+	case 0:
+		memloc = icc.Memory[icc.PC+index]
+	case 1:
+		memloc = icc.PC + index
+	case 2:
+		memloc = icc.PC + icc.base + index
 	}
+
+	icc.Memory[memloc] = value
+
 }
 
 // Advance operates on the computer, executing the next instruction
