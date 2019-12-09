@@ -9,38 +9,51 @@ import (
 )
 
 type Circuit struct {
-	computers [5]pkg.IntCodeComputer
+	computers []pkg.IntCodeComputer
+	input     chan int
+	output    chan int
 }
 
-func makeCircuit(program []int) (circuit Circuit) {
-	for i := range circuit.computers {
-		circuit.computers[i].Initialise(program)
+func makeCircuit(numCircuits int, program []int) (circuit Circuit) {
+	input := make(chan int, 2)
+	t := input
+	for i := 0; i < numCircuits; i++ {
+		cpu := pkg.NewIntCodeComputer(program)
+		cpu.Input = t
+		t = cpu.Output
+		circuit.computers = append(circuit.computers, *cpu)
 	}
-	return
-}
-
-func (c *Circuit) Initialise(program []int) {
-	for i := range c.computers {
-		c.computers[i].Initialise(program)
-	}
+	circuit.input = input
+	circuit.output = t
+	return circuit
 }
 
 func (c *Circuit) setPhase(phase []int) {
 	for i := range c.computers {
-		c.computers[i].Input = append(c.computers[i].Input, phase[i])
+		c.computers[i].AddInput(phase[i])
 	}
 }
 
-func (c *Circuit) Run(input int) int {
+func (c *Circuit) Run() {
 	for i := range c.computers {
-		c.computers[i].Input = append(c.computers[i].Input, input)
 		c.computers[i].Run()
-		input = c.computers[i].Output[0]
 	}
-	return input
 }
 
-func (c *Circuit) findMaxPhase(program []int) []int {
+func (c *Circuit) RunToCompletion(phase []int, input int) int {
+	for i := range c.computers {
+		c.computers[i].Run()
+	}
+	c.setPhase(phase)
+	c.input <- 0
+	var o = 0
+	for o = range c.output {
+		c.input <- o
+	}
+	return o
+}
+
+func findMaxPhase(program []int) ([]int, int) {
 	phase := []int{0, 0, 0, 0, 0}
 	result := 0
 	for i := 0; i < 5; i++ {
@@ -49,11 +62,13 @@ func (c *Circuit) findMaxPhase(program []int) []int {
 				for l := 0; l < 5; l++ {
 					for m := 0; m < 5; m++ {
 						if i != j && i != k && i != l && i != m && j != k && j != l && j != m && k != l && k != m && l != m {
-							c.Initialise(program)
+							c := makeCircuit(5, program)
+							c.Run()
 							c.setPhase([]int{i, j, k, l, m})
-							c.Run(0)
-							if c.computers[4].Output[0] > result {
-								result = c.computers[4].Output[0]
+							c.input <- 0
+							out := <-c.output
+							if out > result {
+								result = out
 								phase = []int{i, j, k, l, m}
 							}
 						}
@@ -62,7 +77,31 @@ func (c *Circuit) findMaxPhase(program []int) []int {
 			}
 		}
 	}
-	return phase
+	return phase, result
+}
+
+func findFeedbackMaxPhase(program []int) ([]int, int) {
+	phase := []int{0, 0, 0, 0, 0}
+	result := 0
+	for i := 5; i < 10; i++ {
+		for j := 5; j < 10; j++ {
+			for k := 5; k < 10; k++ {
+				for l := 5; l < 10; l++ {
+					for m := 5; m < 10; m++ {
+						if i != j && i != k && i != l && i != m && j != k && j != l && j != m && k != l && k != m && l != m {
+							c := makeCircuit(5, program)
+							out := c.RunToCompletion([]int{i, j, k, l, m}, 0)
+							if out > result {
+								result = out
+								phase = []int{i, j, k, l, m}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return phase, result
 }
 
 // returns part1 and part2
@@ -73,13 +112,12 @@ func run(input string) (part1 string, part2 string) {
 		icode, _ := strconv.Atoi(code)
 		memory = append(memory, icode)
 	}
-	circuit := makeCircuit(memory)
-	phase := circuit.findMaxPhase(memory)
-	circuit.Initialise(memory)
-	circuit.setPhase(phase)
-	part1 = fmt.Sprintf("%v", circuit.Run(0))
+	_, result := findMaxPhase(memory)
+
+	part1 = fmt.Sprintf("%v", result)
 	// Parse input and return output
-	part2 = ""
+	_, result = findFeedbackMaxPhase(memory)
+	part2 = fmt.Sprintf("%v", result)
 	return
 }
 

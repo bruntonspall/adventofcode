@@ -22,10 +22,34 @@ func TestCircuit(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		circuit := makeCircuit(tt.program)
-		circuit.setPhase(tt.phase)
 		t.Run(fmt.Sprintf("%v%v", tt.program, tt.phase), func(t *testing.T) {
-			s := circuit.Run(0)
+			circuit := makeCircuit(5, tt.program)
+			circuit.Run()
+			circuit.setPhase(tt.phase)
+			circuit.input <- 0
+			s := <-circuit.output
+			if !cmp.Equal(s, tt.out) {
+				t.Errorf("got %v, want %v", s, tt.out)
+			}
+		})
+	}
+
+}
+
+func TestFeedbackCircuit(t *testing.T) {
+	cases := []struct {
+		program []int
+		phase   []int
+		out     int
+	}{
+		{[]int{3, 26, 1001, 26, -4, 26, 3, 27, 1002, 27, 2, 27, 1, 27, 26,
+			27, 4, 27, 1001, 28, -1, 28, 1005, 28, 6, 99, 0, 0, 5}, []int{9, 8, 7, 6, 5}, 139629729},
+	}
+
+	for _, tt := range cases {
+		t.Run(fmt.Sprintf("%v%v", tt.program, tt.phase), func(t *testing.T) {
+			circuit := makeCircuit(5, tt.program)
+			s := circuit.RunToCompletion(tt.phase, 0)
 			if !cmp.Equal(s, tt.out) {
 				t.Errorf("got %v, want %v", s, tt.out)
 			}
@@ -45,12 +69,29 @@ func TestFindPhase(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		circuit := makeCircuit(tt.program)
 		t.Run(fmt.Sprintf("%v%v", tt.program, tt.phase), func(t *testing.T) {
-			phase := circuit.findMaxPhase(tt.program)
-			circuit.Initialise(tt.program)
-			circuit.setPhase(phase)
-			s := circuit.Run(0)
+			phase, s := findMaxPhase(tt.program)
+			if !cmp.Equal(s, tt.out) || !cmp.Equal(phase, tt.phase) {
+				t.Errorf("got %v, want %v (got phase %v, wanted phase %v)", s, tt.out, phase, tt.phase)
+			}
+		})
+	}
+
+}
+
+func TestFindFeedbackPhase(t *testing.T) {
+	cases := []struct {
+		program []int
+		phase   []int
+		out     int
+	}{
+		{[]int{3, 26, 1001, 26, -4, 26, 3, 27, 1002, 27, 2, 27, 1, 27, 26, 27, 4, 27, 1001, 28, -1, 28, 1005, 28, 6, 99, 0, 0, 5}, []int{9, 8, 7, 6, 5}, 139629729},
+		{[]int{3, 52, 1001, 52, -5, 52, 3, 53, 1, 52, 56, 54, 1007, 54, 5, 55, 1005, 55, 26, 1001, 54, -5, 54, 1105, 1, 12, 1, 53, 54, 53, 1008, 54, 0, 55, 1001, 55, 1, 55, 2, 53, 55, 53, 4, 53, 1001, 56, -1, 56, 1005, 56, 6, 99, 0, 0, 0, 0, 10}, []int{9, 7, 8, 5, 6}, 18216},
+	}
+
+	for _, tt := range cases {
+		t.Run(fmt.Sprintf("%v%v", tt.program, tt.phase), func(t *testing.T) {
+			phase, s := findFeedbackMaxPhase(tt.program)
 			if !cmp.Equal(s, tt.out) || !cmp.Equal(phase, tt.phase) {
 				t.Errorf("got %v, want %v (got phase %v, wanted phase %v)", s, tt.out, phase, tt.phase)
 			}
@@ -63,7 +104,12 @@ var tests = pkg.TestCases{
 	{
 		"3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0",
 		"43210",
-		"",
+		"98765",
+	},
+	{
+		puzzle,
+		"262086",
+		"5371621",
 	},
 }
 
