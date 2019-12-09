@@ -9,7 +9,7 @@ var globalid = 1
 
 // IntCodeComputer is a basic computer that can run int code
 type IntCodeComputer struct {
-	Memory []int
+	Memory map[int]int
 	PC     int
 	Input  chan int
 	Output chan int
@@ -17,10 +17,13 @@ type IntCodeComputer struct {
 	base   int
 }
 
+// NewIntCodeComputer creates a new IntCodeComputer
 func NewIntCodeComputer(memory []int) *IntCodeComputer {
 	icc := new(IntCodeComputer)
-	icc.Memory = make([]int, len(memory))
-	copy(icc.Memory[:], memory)
+	icc.Memory = make(map[int]int)
+	for i, k := range memory {
+		icc.Memory[i] = k
+	}
 	icc.Input = make(chan int)
 	icc.Output = make(chan int)
 	icc.PC = 0
@@ -29,10 +32,12 @@ func NewIntCodeComputer(memory []int) *IntCodeComputer {
 	return icc
 }
 
+// AddInput pushes an input into the computer
 func (icc *IntCodeComputer) AddInput(v int) {
 	icc.Input <- v
 }
 
+// GetOutput gets the last output digit
 func (icc *IntCodeComputer) GetOutput() int {
 	o := <-icc.Output
 	return o
@@ -80,10 +85,10 @@ func (icc *IntCodeComputer) Advance() {
 
 	switch opcode {
 	case 1:
-		icc.Memory[icc.Memory[icc.PC+3]] = icc.getParam(1) + icc.getParam(2)
+		icc.setParam(3, icc.getParam(1)+icc.getParam(2))
 		icc.PC += 4
 	case 2:
-		icc.Memory[icc.Memory[icc.PC+3]] = icc.getParam(1) * icc.getParam(2)
+		icc.setParam(3, icc.getParam(1)*icc.getParam(2))
 		icc.PC += 4
 	case 3:
 		fmt.Printf("%v: Waiting for input\n", icc.id)

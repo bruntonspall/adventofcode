@@ -9,6 +9,28 @@ import (
 
 /* With the input and output via channels, this internal inspecting is much harder */
 
+func arrayToMap(a []int) (m map[int]int) {
+	for i, k := range a {
+		m[i] = k
+	}
+	return
+}
+
+func mapToArray(m map[int]int) (a []int) {
+	max := 0
+	for k := range m {
+		if k > max {
+			max = k
+		}
+	}
+	fmt.Printf("%v -> %v\n", m, max)
+	a = make([]int, max+1)
+	for k, v := range m {
+		a[k] = v
+	}
+	return
+}
+
 /* Verify that programs run until 99, changing memory as a side effect */
 func TestRunProgram(t *testing.T) {
 	cases := []struct {
@@ -23,6 +45,8 @@ func TestRunProgram(t *testing.T) {
 			[]int{30, 1, 1, 4, 2, 5, 6, 0, 99}, 8},
 		{[]int{1101, 100, -1, 4, 0},
 			[]int{1101, 100, -1, 4, 99}, 4},
+		{[]int{1, 0, 0, 10, 99},
+			[]int{1, 0, 0, 10, 99, 0, 0, 0, 0, 0, 2}, 4},
 	}
 	for _, tt := range cases {
 		t.Run(fmt.Sprintf("%v", tt.program), func(t *testing.T) {
@@ -30,7 +54,7 @@ func TestRunProgram(t *testing.T) {
 			cpu.Run()
 			_, ok := <-cpu.Output
 			if !ok {
-				if !cmp.Equal(cpu.Memory, tt.out) || !cmp.Equal(cpu.PC, tt.pc) {
+				if !cmp.Equal(mapToArray(cpu.Memory), tt.out) || !cmp.Equal(cpu.PC, tt.pc) {
 					t.Errorf("got %v, want %v", cpu.Memory, tt.out)
 				}
 			}
@@ -59,7 +83,7 @@ func TestAdvance(t *testing.T) {
 			cpu := NewIntCodeComputer(tt.program)
 			cpu.PC = tt.startpc
 			cpu.Advance()
-			if !cmp.Equal(cpu.Memory, tt.out) || !cmp.Equal(cpu.PC, tt.pc) {
+			if !cmp.Equal(mapToArray(cpu.Memory), tt.out) || !cmp.Equal(cpu.PC, tt.pc) {
 				t.Errorf("got %v(%v), want %v(%v)", cpu.Memory, cpu.PC, tt.out, tt.pc)
 			}
 		})
@@ -86,7 +110,7 @@ func TestParameterModes(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", tt.in), func(t *testing.T) {
 			cpu := NewIntCodeComputer(tt.in)
 			cpu.Advance()
-			if !cmp.Equal(cpu.Memory, tt.out) {
+			if !cmp.Equal(mapToArray(cpu.Memory), tt.out) {
 				t.Errorf("got %v, want %v", cpu.Memory, tt.out)
 			}
 		})
