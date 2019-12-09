@@ -8,9 +8,9 @@ import (
 
 var tests = pkg.TestCases{
 	{
-		"Input",
-		"Part1",
-		"Part2",
+		puzzle,
+		"2789104029",
+		"32869",
 	},
 }
 
