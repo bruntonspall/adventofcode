@@ -9,7 +9,7 @@ type Circuit struct {
 
 // NewCircuit sets up a new set of circuits, all running the same program
 func NewCircuit(numCircuits int, program []int) (circuit Circuit) {
-	input := make(chan int, 2)
+	input := make(chan int)
 	t := input
 	for i := 0; i < numCircuits; i++ {
 		cpu := NewIntCodeComputer(program)
@@ -55,7 +55,12 @@ func (c *Circuit) RunToCompletion(phase []int, input int) int {
 	c.input <- input
 	var o = 0
 	for o = range c.output {
-		c.input <- o
+		// Posting back to the beginning when the circuit has finished wont return
+		// So we start a goroutine to post.
+		// We know we are done when c.output is closed and the range will finish
+		go func(o int) {
+			c.input <- o
+		}(o)
 	}
 	return o
 }
