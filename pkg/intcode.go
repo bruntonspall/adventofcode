@@ -15,6 +15,7 @@ type IntCodeComputer struct {
 	Output chan int
 	id     int
 	base   int
+	debug  bool
 }
 
 // NewIntCodeComputer creates a new IntCodeComputer
@@ -91,17 +92,25 @@ func (icc *IntCodeComputer) Advance() {
 		icc.setParam(3, icc.getParam(1)*icc.getParam(2))
 		icc.PC += 4
 	case 3:
-		fmt.Printf("%v: Waiting for input\n", icc.id)
+		if icc.debug {
+			fmt.Printf("%v: Waiting for input\n", icc.id)
+		}
 		in := <-icc.Input
-		fmt.Printf("%v: Got input %v\n", icc.id, in)
+		if icc.debug {
+			fmt.Printf("%v: Got input %v\n", icc.id, in)
+		}
 		icc.setParam(1, in)
 
 		icc.PC += 2
 	case 4:
 		out := icc.getParam(1)
-		fmt.Printf("%v: Waiting to output %v\n", icc.id, out)
+		if icc.debug {
+			fmt.Printf("%v: Waiting to output %v\n", icc.id, out)
+		}
 		icc.Output <- out
-		fmt.Printf("%v: Sent output\n", icc.id)
+		if icc.debug {
+			fmt.Printf("%v: Sent output\n", icc.id)
+		}
 		icc.PC += 2
 	case 5:
 		if icc.getParam(1) != 0 {
@@ -134,22 +143,31 @@ func (icc *IntCodeComputer) Advance() {
 		icc.PC += 2
 	case 99:
 		close(icc.Output)
-		fmt.Printf("%v: End\n", icc.id)
+		if icc.debug {
+			fmt.Printf("%v: End\n", icc.id)
+		}
 	default:
 		icc.PC++
 	}
 }
 
 // Run operates the computer until it reaches a halt instruction
-func (icc *IntCodeComputer) Run() {
+func (icc *IntCodeComputer) Run() (c chan int) {
+	c = make(chan int, 2)
 	go func() {
-		fmt.Printf("%v: START\n", icc.id)
+		if icc.debug {
+			fmt.Printf("%v: START\n", icc.id)
+		}
 		for icc.Memory[icc.PC] != 99 {
 			icc.Advance()
 		}
 		close(icc.Output)
-		fmt.Printf("%v: EOP\n", icc.id)
+		if icc.debug {
+			fmt.Printf("%v: EOP\n", icc.id)
+		}
+		c <- 1
 	}()
+	return
 }
 
 // SyncRun runs the program until the program stops
