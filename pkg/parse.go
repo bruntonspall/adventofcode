@@ -15,3 +15,10 @@ func Parse(line string, sep string) []int {
 	}
 	return ans
 }
+
+func Abs(i int) int {
+	if i < 0 {
+		return -i
+	}
+	return i
+}
