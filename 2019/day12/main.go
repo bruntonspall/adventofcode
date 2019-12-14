@@ -97,6 +97,47 @@ func TotalEnergy(moons []Moon) int {
 	return total
 }
 
+// GCD returns the greatest common divisor between a and b
+func GCD(a, b int) int {
+	for b != 0 {
+		a, b = b, a%b
+	}
+
+	return a
+}
+
+// LCM returns the lowest common multiple of a and b
+func LCM(a, b int) int {
+	return a * b / GCD(a, b)
+}
+
+func findPeriod(moons []Moon) int {
+	period := Coord3D{}
+	steps := 0
+	for {
+		moons = Step(moons)
+		steps++
+		if period.X == 0 {
+			if moons[0].Vel.X == 0 && moons[1].Vel.X == 0 && moons[2].Vel.X == 0 && moons[3].Vel.X == 0 {
+				period.X = steps
+			}
+		}
+		if period.Y == 0 {
+			if moons[0].Vel.Y == 0 && moons[1].Vel.Y == 0 && moons[2].Vel.Y == 0 && moons[3].Vel.Y == 0 {
+				period.Y = steps
+			}
+		}
+		if period.Z == 0 {
+			if moons[0].Vel.Z == 0 && moons[1].Vel.Z == 0 && moons[2].Vel.Z == 0 && moons[3].Vel.Z == 0 {
+				period.Z = steps
+			}
+		}
+		if period.X > 0 && period.Y > 0 && period.Z > 0 {
+			return LCM(LCM(period.X, period.Y), period.Z)
+		}
+	}
+}
+
 // returns part1 and part2
 func run(input string) (part1 string, part2 string) {
 	moons := Parse(input)
@@ -111,7 +152,8 @@ func run(input string) (part1 string, part2 string) {
 	// Parse input and return output
 	part1 = fmt.Sprintf("%d", TotalEnergy(moons))
 	// Parse input and return output
-	part2 = "Part2"
+	moons = Parse(input)
+	part2 = fmt.Sprintf("%d", findPeriod(moons)*2)
 	return
 }
 
