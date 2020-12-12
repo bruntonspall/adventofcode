@@ -15,7 +15,8 @@ This is my set of entries for [advent of code 2020](https://www.adventofcode.com
 
 ## Completed days
   So far I've completed the following days:
+
 EOF
 for days in *.html; do
-	echo "[${days/.html/}]($days)" >> index.md
+	echo "  * [${days/.html/}]($days)" >> index.md
 done;
