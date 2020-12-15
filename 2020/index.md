@@ -4,11 +4,12 @@ This is my set of entries for [advent of code 2020](https://www.adventofcode.com
 ## Completed days
   So far I've completed the following days:
 
-  * [Untitled](Untitled.html)
   * [day1](day1.html)
   * [day10](day10.html)
   * [day11](day11.html)
   * [day12](day12.html)
+  * [day13](day13.html)
+  * [day14](day14.html)
   * [day2](day2.html)
   * [day3](day3.html)
   * [day4](day4.html)
