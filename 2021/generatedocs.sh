@@ -1,4 +1,6 @@
 #!/bin/bash
+. venv/bin/activate
+
 for days in *.ipynb; do
 echo ${days/ipynb/html}
 	if [[ ! -e ${days/ipynb/html} ]]; then
