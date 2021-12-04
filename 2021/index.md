@@ -6,3 +6,5 @@ This is my set of entries for [advent of code 2021](https://www.adventofcode.com
 
   * [Day 1](Day 1.html)
   * [Day 2](Day 2.html)
+  * [Day 3](Day 3.html)
+  * [Day 4](Day 4.html)
