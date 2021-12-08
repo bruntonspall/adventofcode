@@ -11,3 +11,4 @@ This is my set of entries for [advent of code 2021](https://www.adventofcode.com
   * [Day 5](Day 5.html)
   * [Day 6](Day 6.html)
   * [Day 7](Day 7.html)
+  * [Day 8](Day 8.html)
