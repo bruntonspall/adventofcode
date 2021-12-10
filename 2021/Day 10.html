@@ -14530,7 +14530,7 @@ If it does match, pop that item off the stack and keep going</p>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[13]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">## Import ipytest and get it setup for use in Python Notebook</span>
@@ -14547,7 +14547,7 @@ If it does match, pop that item off the stack and keep going</p>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[14]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">legal_chunks</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;([])&quot;</span><span class="p">,</span> <span class="s2">&quot;{()()()}&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;([</span><span class="si">{}</span><span class="s2">])&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;[&lt;&gt;(</span><span class="si">{}</span><span class="s2">)</span><span class="si">{}</span><span class="s2">[([])&lt;&gt;]]&quot;</span><span class="p">,</span> <span class="s2">&quot;(((((((((())))))))))&quot;</span><span class="p">]</span>
@@ -14598,7 +14598,7 @@ If it does match, pop that item off the stack and keep going</p>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[15]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">test_lines</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;[({(&lt;(())[]&gt;[[{[]{&lt;()&lt;&gt;&gt;</span>
@@ -14632,7 +14632,7 @@ If it does match, pop that item off the stack and keep going</p>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[16]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;day10.txt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
@@ -14668,18 +14668,147 @@ If it does match, pop that item off the stack and keep going</p>
 
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Part-2">Part 2<a class="anchor-link" href="#Part-2">&#182;</a></h1><p>Ok, unusually for us, part 2 has itself two main parts.  The first is that we need to essentially return the stack.  Those are the letters, in order, that can close all of the open lines.  In our case that part is pretty simple.</p>
+<p>The second issue however is the unneccesarily complex scoring mechanism.  We'll write a function to take a stack and turn it into a score, and the change in our main code is simply to return the stack when we get to the end of teh line.</p>
+<p>Note: the stack is a list, in reverse order.  Since we want to process each item, isntead of popping them, we cna simply reverse the list and then iterate over them.</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[17]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span> 
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">score_autocomplete</span><span class="p">(</span><span class="n">completion</span><span class="p">):</span>
+    <span class="n">scoretable</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;)&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;]&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;}&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">}</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">letter</span> <span class="ow">in</span> <span class="n">completion</span><span class="p">:</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">score</span> <span class="o">*</span> <span class="mi">5</span>
+        <span class="n">score</span> <span class="o">+=</span> <span class="n">scoretable</span><span class="p">[</span><span class="n">letter</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">score</span>
+
+<span class="k">assert</span> <span class="mi">288957</span> <span class="o">==</span> <span class="n">score_autocomplete</span><span class="p">(</span><span class="s2">&quot;}}]])})]&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="mi">5566</span> <span class="o">==</span> <span class="n">score_autocomplete</span><span class="p">(</span><span class="s2">&quot;)}&gt;]})&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="mi">1480781</span> <span class="o">==</span> <span class="n">score_autocomplete</span><span class="p">(</span><span class="s2">&quot;}}&gt;}&gt;))))&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="mi">995444</span> <span class="o">==</span> <span class="n">score_autocomplete</span><span class="p">(</span><span class="s2">&quot;]]}}]}]}&gt;&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="mi">294</span> <span class="o">==</span> <span class="n">score_autocomplete</span><span class="p">(</span><span class="s2">&quot;])}&gt;&quot;</span><span class="p">)</span>
 </pre></div>
 
      </div>
 </div>
 </div>
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Let's confirm that the changes to the process_chunks can return teh right stacks</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[18]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">process_chunks</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="n">stack</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+        <span class="n">match</span> <span class="n">c</span><span class="p">:</span>
+            <span class="n">case</span> <span class="s2">&quot;(&quot;</span><span class="p">:</span> 
+                <span class="n">stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+            <span class="n">case</span> <span class="s2">&quot;[&quot;</span><span class="p">:</span>
+                <span class="n">stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;]&quot;</span><span class="p">)</span>
+            <span class="n">case</span> <span class="s2">&quot;{&quot;</span><span class="p">:</span>
+                <span class="n">stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+            <span class="n">case</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">:</span>
+                <span class="n">stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">)</span>
+            <span class="n">case</span> <span class="n">m</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">stack</span> <span class="o">==</span> <span class="p">[]:</span>
+                    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span><span class="n">m</span>
+                <span class="k">elif</span> <span class="n">stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">m</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span><span class="n">m</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="n">m</span> <span class="o">==</span> <span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">stack</span><span class="p">))</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">process_chunks</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">test_lines</span><span class="p">]</span>
+<span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;}}]])})]&quot;</span><span class="p">,</span> <span class="s2">&quot;)}&gt;]})&quot;</span><span class="p">,</span> <span class="s2">&quot;}}&gt;}&gt;))))&quot;</span><span class="p">,</span> <span class="s2">&quot;]]}}]}]}&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;])}&gt;&quot;</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">expected</span> <span class="o">==</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Ok, final thing, we don't want the actual score, we want the middle number from the scores once sorted.
+With a given list of scores, given the constraint that there will always be an odd number of items, the midpoint should be at (len(list)-1)//2.</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[19]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">scores</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">score_autocomplete</span><span class="p">,</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]]))</span>
+<span class="k">assert</span> <span class="mi">288957</span> <span class="o">==</span> <span class="n">scores</span><span class="p">[(</span><span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Let's try that on prod data then</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[20]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;day10.txt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+<span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">process_chunks</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+<span class="n">scores</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">score_autocomplete</span><span class="p">,</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">scores</span><span class="p">[(</span><span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">])</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>3241238967
+</pre>
+</div>
+</div>
+
+</div>
+
 </div>
 
 </div>
