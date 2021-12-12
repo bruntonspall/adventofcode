@@ -10,6 +10,7 @@ This is my set of entries for [advent of code 2020](https://www.adventofcode.com
   * [day12](day12.html)
   * [day13](day13.html)
   * [day14](day14.html)
+  * [day15](day15.html)
   * [day2](day2.html)
   * [day3](day3.html)
   * [day4](day4.html)
