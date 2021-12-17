@@ -8,6 +8,8 @@ This is my set of entries for [advent of code 2021](https://www.adventofcode.com
   * [Day 10](Day 10.html)
   * [Day 11](Day 11.html)
   * [Day 12](Day 12.html)
+  * [Day 13](Day 13.html)
+  * [Day 14](Day 14.html)
   * [Day 2](Day 2.html)
   * [Day 3](Day 3.html)
   * [Day 4](Day 4.html)
