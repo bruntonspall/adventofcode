@@ -14710,6 +14710,295 @@ a.anchor-link {
 
 </div>
 </div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Some-overnight-thinking">Some overnight thinking<a class="anchor-link" href="#Some-overnight-thinking">&#182;</a></h2><p>I've had some sleep, I've had a chance to think and more importantly, I've had a look at Day 15 and I'm excited to get to it, but I think I can solve this.</p>
+<p>I was helped by contact in a slack I share, Joe, who said "You don't need to store the whole string to know how many letters there are".</p>
+<p>This made me think that I've been thinking of this, somewhat deliberately as long strings like <code>NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB</code>.  But as I said right back at the beginning <code>NNCB</code> is actually 3 pairs, <code>NN</code>, <code>NC</code> and <code>CB</code>.  We do this already with the pairwise function, but the mapping I had was to turn <code>NN</code>-&gt; <code>NCN</code>, and I optimised it because I didn't want to catonate all the strings together and have repeating polymers.
+But in fact if I think of the mapping as going from <code>NN</code> to <code>("NC", "CN")</code>, what I've got is a list of pairs.  These pairs don't matter about order, so I can just keep a count of the pairs at each iteration, and that will enable me to calculate the next iteration just by applying the mapping.</p>
+<p>What gets hard now though is working out the maths for the duplicate atoms.  If we take the 3 pairs <code>NN, NC, CB</code> that came from <code>NNCB</code>, we'd count 3 N's and 2'C and 1 B, which is too many because the N in NN and NC is shared and the C in NC and CB is shared.</p>
+<p>Before I think about that, let's try the pairwise atom mapping and see if it give us the right answer for iteration 1 and 2.
+<code>NNCB -&gt; [(NN), (NC), (CB)]</code>
+<code>pair[NN] -&gt; [(NC, CN)]</code>
+<code>pair[NC] -&gt; [(NB, BC)]</code>
+<code>pair[CB] -&gt; [(CH, HB)]</code>
+So <code>[NN, NC, CB] -&gt; [NC, CN, NB, BC, CH, HB]</code></p>
+<p>Our next iteration does the same mapping and turns us into
+<code>[NC, CN, NB, BC, CH, HB] -&gt; [NB, BC, CC, CN, NB, BB, BB, BC, CB, HB, HC, CB]</code> that result can also be described slightly more succinctly as <code>[NB:2, BC:2, CC:1, CN:1...]</code>.  That starts to compress fairly well because we're just keeping counts, and we know that the 2 NBs in the next round will result in 2 more NB's and 2 more BNs.
+Now our total number of pairs in iteration 2 is 12, but the actual length of the polymer is 13.  Once we lose the order of the pairs, we completely lose the ability to reconstruct the polymer chain.  But we don't care about the chain, what we care about is the actual counts.</p>
+<p>Hmm, I'm going to have to cheat at this point.  I cannot reason out a simple way in which I can keep sensible count of the duplicates as we go.  Especially once you start getting to the fact we have 2 <code>bc</code>'s in the second chain with no context as to what they are next to.</p>
+<p>Off I go to one of my coworkers, Gerald Benischke who is doing the advent of code this year as an opportunity to flex his Haskell.  What I like about Gerald's blogposts is that like me, he's trying to explain his thinking as well as the code. This days one is no different: <a href="https://beny23.github.io/posts/advent_of_code_2021_day_14/">https://beny23.github.io/posts/advent_of_code_2021_day_14/</a>.  Gerald mostly covers the how and why of currying and the haskell maps and some neat recursion tricks, but the most important part for me is this bit</p>
+<blockquote><p>So now that we’ve got pairs and their occurrences, we can combine them to count the letters. The idea was that now we’ve got the pairs, I would look at the first letter of each pair and count that.</p>
+<p>To take this onto the small scale, if we look at NNCB, there are three pairs (NN, NC, CB) and if we look at the first letter of each pair AND add the very last letter, then we get back to NNCB. So similarly, when we count up all the pairs and occurrences, we can use this logic (first letter of each pair, plus 1 occurrence of the last letter) to create a count without needed exponential computing power and memory.</p>
+</blockquote>
+<p>That's a really smart idea.  I was stuck for a moment there on "How do I know what the last latter is", and then it struck me.  The polymerisation process always inserts the new atom in the middle of the polymer, so NNCB can also be seen as N**B, and each of the stars will endlessly expand, but it will always start with an N and end in a B.  A quick check of the test inputs shows that to be true for the test (although my day14 input has different letters there, so we can't hardcode N and B, but need the actual value from the template).  Python lets us do template[-1] to get the last item from a string, so that's easy.</p>
+<h3 id="A-word-on-%22cheating%22">A word on "cheating"<a class="anchor-link" href="#A-word-on-%22cheating%22">&#182;</a></h3><p>I can feel some people asking "Surely it's cheating to look at someone elses solution".  I don't see it that way, but let me explain why I don't and how Advent of Code can help us in our software development careers.</p>
+<p>Advent of Code is a programming puzzle, for someone like me who spends 8 hours a day in meetings coordinating things, it's an opportunity to write code and make sure that I haven't forgotten what the experience is like.  It's also a chance to try some logical and mathmatical puzzles that I'm not familiar with.</p>
+<p>But it's also a lot like working as a software dveloper, and very few of us work well in isolation.  I was pretty lucky that after about 5 years of my first software development jobs (touchscreen bingo, PS Vita and Xbox games, some finance trading software) I fell into one of the best and biggest agile development projects happening in the UK.  I'd been a fan of agile software development from my first job and I'd read the books, but I got to practice it when I joined the Guardian newspaper.  And joining a team of around 100 software developers who pair-programmed day every day taught me huge amounts about learning from others.</p>
+<p>But what it taught me most of all is that there is no cheating when you rely on the knowledge of others.  The business wants the code to work, and the best way you can understand a problem is to talk to someone who has dealt with it before.</p>
+<p>For something like the Advent of Code, what constitutes cheating will vary for different people.  I'm not doing it for time or points, I'm doing it to exercise my ability to implement code.  If I copied and pasted code from another python person and said "don't know why it works, but it does", I'd be disappoionted in myself.  But even if I'd copied code from another developer, if I had reasoned trhough how it works, looked at their implementation and thought "Yes, I understand how this works and I could write it myself now", then I've learned something.</p>
+<p>All this to say, don't put artificial barriers in the way, especially for hobbies like Advent of Code.  If you look at a problem and think I don't know how to solve that, you can look at wikipedia, at chat rooms or at other peoples stuff.  You also don't need to continue in a language or method that isn't fun anymore just because you started that way.  You might even implement something one way or in one language, and then go back and change it once you've got a wqorking solution to match you desired approach.</p>
+<p>You do you.</p>
+<p>Anyway, back onto the code.  Let's make maps of the results, and then count the first letter of each pair, plus the final letter to get our counts</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">parse_lines</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">2</span><span class="p">:]:</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">append</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; -&gt; &quot;</span><span class="p">)</span>
+        <span class="n">mapping</span><span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">start</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">append</span><span class="p">,</span> <span class="n">append</span><span class="o">+</span><span class="n">start</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">template</span><span class="p">,</span> <span class="n">mapping</span>
+
+
+<span class="n">template</span><span class="p">,</span> <span class="n">mapping</span> <span class="o">=</span> <span class="n">parse_lines</span><span class="p">(</span><span class="n">test_lines</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">template</span> <span class="o">==</span> <span class="s2">&quot;NNCB&quot;</span>
+<span class="k">assert</span> <span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;CH&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;CB&quot;</span><span class="p">,</span> <span class="s2">&quot;BH&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;HH&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;HN&quot;</span><span class="p">,</span> <span class="s2">&quot;NH&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;CB&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;CH&quot;</span><span class="p">,</span> <span class="s2">&quot;HB&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">mapping</span><span class="p">[</span><span class="s2">&quot;NH&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;NC&quot;</span><span class="p">,</span> <span class="s2">&quot;CH&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span> <span class="o">==</span> <span class="mi">16</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="k">def</span> <span class="nf">atomcounts_from_string</span><span class="p">(</span><span class="n">template</span><span class="p">):</span>
+    <span class="n">atomcounts</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">pairwise</span><span class="p">(</span><span class="n">template</span><span class="p">):</span>
+        <span class="n">atomcounts</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pair</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">atomcounts</span>
+
+<span class="n">atomcounts</span> <span class="o">=</span> <span class="n">atomcounts_from_string</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+<span class="k">assert</span> <span class="p">{</span><span class="s2">&quot;NN&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;NC&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span> <span class="o">==</span> <span class="n">atomcounts</span>
+
+<span class="k">def</span> <span class="nf">iterate</span><span class="p">(</span><span class="n">atomcounts</span><span class="p">,</span> <span class="n">mapping</span><span class="p">):</span>
+    <span class="n">newatomcounts</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">atom</span><span class="p">,</span><span class="n">count</span> <span class="ow">in</span> <span class="n">atomcounts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">outpair</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">[</span><span class="n">atom</span><span class="p">]:</span>
+            <span class="n">newatomcounts</span><span class="p">[</span><span class="n">outpair</span><span class="p">]</span> <span class="o">+=</span> <span class="n">count</span>
+    <span class="k">return</span> <span class="n">newatomcounts</span>
+
+
+<span class="n">atomcounts</span> <span class="o">=</span> <span class="n">iterate</span><span class="p">(</span><span class="n">atomcounts</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+<span class="k">assert</span> <span class="p">{</span><span class="s2">&quot;NC&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;CN&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;NB&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;BC&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;CH&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;HB&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span> <span class="o">==</span> <span class="n">atomcounts</span>
+<span class="n">atomcounts</span> <span class="o">=</span> <span class="n">iterate</span><span class="p">(</span><span class="n">atomcounts</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">atomcounts</span><span class="p">[</span><span class="s2">&quot;NB&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="k">assert</span> <span class="n">atomcounts</span><span class="p">[</span><span class="s2">&quot;BB&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="k">assert</span> <span class="n">atomcounts</span><span class="p">[</span><span class="s2">&quot;BC&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="k">assert</span> <span class="n">atomcounts</span><span class="p">[</span><span class="s2">&quot;NC&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="n">atomcounts</span> <span class="o">=</span> <span class="n">iterate</span><span class="p">(</span><span class="n">atomcounts</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">atomcounts</span><span class="p">[</span><span class="s2">&quot;NB&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span>
+<span class="k">assert</span> <span class="n">atomcounts</span><span class="p">[</span><span class="s2">&quot;BB&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span>
+<span class="k">assert</span> <span class="n">atomcounts</span><span class="p">[</span><span class="s2">&quot;BC&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="k">assert</span> <span class="n">atomcounts</span><span class="p">[</span><span class="s2">&quot;NC&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Ok, so we've got a way to turn a string into our counting pairs to start the whole process, and then we can iterate those based on our mapping.</p>
+<p>Let's sort the counting problem now</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">countatoms</span><span class="p">(</span><span class="n">atomcounts</span><span class="p">,</span> <span class="n">lastletter</span><span class="p">):</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">counts</span><span class="p">[</span><span class="n">lastletter</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">atom</span><span class="p">,</span><span class="n">count</span> <span class="ow">in</span> <span class="n">atomcounts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">atom</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">+=</span><span class="n">count</span>
+    <span class="k">return</span> <span class="n">counts</span>
+
+<span class="k">assert</span> <span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span> <span class="o">==</span> <span class="n">countatoms</span><span class="p">(</span><span class="n">atomcounts_from_string</span><span class="p">(</span><span class="n">template</span><span class="p">),</span> <span class="s2">&quot;B&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span> <span class="o">==</span> <span class="n">countatoms</span><span class="p">(</span><span class="n">iterate</span><span class="p">(</span><span class="n">atomcounts_from_string</span><span class="p">(</span><span class="n">template</span><span class="p">),</span><span class="n">mapping</span><span class="p">),</span> <span class="s2">&quot;B&quot;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Ok, that works, now lets give it a run with 10 iterations on the test data</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">polymer</span> <span class="o">=</span> <span class="n">atomcounts_from_string</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">polymer</span> <span class="o">=</span> <span class="n">iterate</span><span class="p">(</span><span class="n">polymer</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+
+<span class="n">counts</span> <span class="o">=</span> <span class="n">countatoms</span><span class="p">(</span><span class="n">polymer</span><span class="p">,</span> <span class="n">template</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="k">assert</span> <span class="mi">3073</span> <span class="o">==</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<span class="n">sortedcounts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">sortedcounts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sortedcounts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="k">assert</span> <span class="mi">1588</span> <span class="o">==</span> <span class="n">sortedcounts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">sortedcounts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>(&#39;H&#39;, 161)
+(&#39;B&#39;, 1749)
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Massive, lets give that a go on the real data and then for 40 counts as well.</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">template</span><span class="p">,</span> <span class="n">mapping</span> <span class="o">=</span> <span class="n">parse_lines</span><span class="p">([</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;day14.txt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()])</span>
+<span class="n">polymer</span> <span class="o">=</span> <span class="n">atomcounts_from_string</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">polymer</span> <span class="o">=</span> <span class="n">iterate</span><span class="p">(</span><span class="n">polymer</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+
+<span class="n">counts</span> <span class="o">=</span> <span class="n">countatoms</span><span class="p">(</span><span class="n">polymer</span><span class="p">,</span> <span class="n">template</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="k">assert</span> <span class="mi">19457</span> <span class="o">==</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<span class="n">sortedcounts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">sortedcounts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sortedcounts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="k">assert</span> <span class="mi">2797</span> <span class="o">==</span> <span class="n">sortedcounts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">sortedcounts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>(&#39;H&#39;, 533)
+(&#39;B&#39;, 3330)
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">template</span><span class="p">,</span> <span class="n">mapping</span> <span class="o">=</span> <span class="n">parse_lines</span><span class="p">([</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;day14.txt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()])</span>
+<span class="n">polymer</span> <span class="o">=</span> <span class="n">atomcounts_from_string</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">40</span><span class="p">):</span>
+    <span class="n">polymer</span> <span class="o">=</span> <span class="n">iterate</span><span class="p">(</span><span class="n">polymer</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+
+<span class="n">sortedcounts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">countatoms</span><span class="p">(</span><span class="n">polymer</span><span class="p">,</span> <span class="n">template</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">sortedcounts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sortedcounts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sortedcounts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">sortedcounts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>(&#39;H&#39;, 610236657139)
+(&#39;K&#39;, 3537050036671)
+2926813379532
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
 </body>
 
 
