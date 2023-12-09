@@ -1,0 +1,6 @@
+notebook
+pytest
+ipytest
+pandoc
+bitstring
+more-itertools
