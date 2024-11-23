@@ -1,0 +1,12 @@
+[package]
+name = "aoc"
+version = "0.1.0"
+authors = ["Michael Brunton-Spall <michael@brunton-spall.co.uk>"]
+edition = "2021"
+
+[lib]
+bench = false
+
+[dependencies]
+aoc-runner = "0.3.0"
+aoc-runner-derive = "0.3.0"
