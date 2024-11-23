@@ -9,14 +9,14 @@ pub fn input_generator(input: &str) -> Vec<u32> {
 
 
 #[aoc(day1, part1, u32)]
-pub fn part1(input: &Vec<u32>) -> u32 {
-    input.windows(2).map(|i| if i[0] < i[1] { 1 } else { 0 }).sum()
+pub fn part1(input: &Vec<u32>) -> usize {
+    input.windows(2).filter(|i|i[0] < i[1]).count()
 }
 
 #[aoc(day1, part2, u32)]
-pub fn part2(input: &Vec<u32>) -> u32 {
+pub fn part2(input: &Vec<u32>) -> usize {
     let windows: Vec<u32> = input.windows(3).map(|w|w.iter().sum()).collect();
-    windows.windows(2).map(|i| if i[0] < i[1] { 1 } else { 0 }).sum()
+    windows.windows(2).filter(|i|i[0] < i[1]).count()
 }
 
 #[cfg(test)]
