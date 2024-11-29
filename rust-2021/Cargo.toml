@@ -1,5 +1,5 @@
 [package]
-name = "aoc"
+name = "mbsaoc2021"
 version = "0.1.0"
 authors = ["Michael Brunton-Spall <michael@brunton-spall.co.uk>"]
 edition = "2021"
@@ -10,3 +10,5 @@ bench = false
 [dependencies]
 aoc-runner = "0.3.0"
 aoc-runner-derive = "0.3.0"
+bit-vec = "0.8.0"
+counter = "0.6.0"
