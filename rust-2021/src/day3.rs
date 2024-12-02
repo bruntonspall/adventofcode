@@ -1,5 +1,4 @@
 use bit_vec::BitVec;
-use counter::Counter;
 
 fn bits_for_position(input: &Vec<String>, pos: usize) -> BitVec {
     BitVec::from_iter(input.iter().map(|line| match line.chars().nth(pos) {
@@ -52,7 +51,7 @@ fn leftpadbytes(input: &mut BitVec) -> Vec<u8> {
 }
 
 fn as_u32(input: &mut BitVec) -> u32 {
-    let mut bytes = leftpadbytes(input);
+    let bytes = leftpadbytes(input);
     println!("as_u32({:?})", bytes);
     let mut total: u32 = 0;
     let mut mul: u32 = 1;
@@ -62,6 +61,25 @@ fn as_u32(input: &mut BitVec) -> u32 {
         mul <<= 8;
     }
     total
+}
+
+fn bitvec_from_string(s: String) -> BitVec {
+    BitVec::new()
+}
+
+fn find_oxygen_rating(input: &Vec<String>) -> &String {
+    let input = input;
+    for i in 0..input[0].len() {
+        let m = mcb(input);
+        println!("find_oxygen_rating on {:?},i is {}, mcb is now {:?}", input, i, m);
+        let input2:Vec<&String> = input.iter().filter(|line|line.chars().nth(i) == match m[i] {
+            true => Some('1'),
+            false => Some('0')
+        }).collect();
+        if input2.len() == 1 { return input2[0]; };
+        input = input2;
+    }
+    panic!("Shouldn't reach here");
 }
 
 #[aoc_generator(day3)]
@@ -165,6 +183,24 @@ mod tests {
         assert_eq!(leftpadbytes(&mut lcb(&bits)), &[0b01001]);
     }
 
+    #[test]
+    fn test_find_oxygen_rating() {
+        let bits = parse(
+            "00100
+11110
+10110
+10111
+10101
+01111
+00111
+11100
+10000
+11001
+00010
+01010",
+        );
+        assert_eq!(find_oxygen_rating(&bits), "10111");
+    }
     #[test]
     fn part1_example() {
         assert_eq!(
