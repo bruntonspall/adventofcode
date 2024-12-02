@@ -90,12 +90,20 @@ pub fn permutate_list(input: &Vec<i32>) -> Vec<Vec<i32>> {
 pub fn part2(input: &Vec<Vec<i32>>) -> usize {
     /* This is exactly what was in part1, but with an any applied to the post generator set */
     /* Ok, take 2, copying over the bits from part 1 was hard, so we're going to refactor part 1 into predicates to make it cleaner */
-    todo!();
+    input
+        .iter() // For each report card
+        .filter(|report| {
+            // Filter out report cards where
+            permutate_list(report) // For each of the report permutations
+                .iter()
+                .any(|perm| high_varience(perm) && rise_or_fall(perm))
+        })
+        .count()
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::day2::{high_varience,rise_or_fall, input_generator, part1, part2, permutate_list};
+    use crate::day2::{high_varience, input_generator, part1, part2, permutate_list, rise_or_fall};
 
     #[test]
     fn test_part1() {
@@ -122,24 +130,23 @@ mod tests {
 
     #[test]
     fn test_high_varience() {
-        assert!(high_varience(&vec![7,6,4,2,1]));
-        assert!(!high_varience(&vec![1,2,7,8,9]));
-        assert!(!high_varience(&vec![9,7,6,2,1]));
-        assert!(high_varience(&vec![1,3,2,4,5]));
-        assert!(!high_varience(&vec![8,6,4,4,1]));
-        assert!(high_varience(&vec![1,3,6,7,9]));
+        assert!(high_varience(&vec![7, 6, 4, 2, 1]));
+        assert!(!high_varience(&vec![1, 2, 7, 8, 9]));
+        assert!(!high_varience(&vec![9, 7, 6, 2, 1]));
+        assert!(high_varience(&vec![1, 3, 2, 4, 5]));
+        assert!(!high_varience(&vec![8, 6, 4, 4, 1]));
+        assert!(high_varience(&vec![1, 3, 6, 7, 9]));
     }
 
     #[test]
     fn test_increase_or_decrease() {
-        assert!(rise_or_fall(&vec![7,6,4,2,1]));
-        assert!(rise_or_fall(&vec![1,2,7,8,9]));
-        assert!(rise_or_fall(&vec![9,7,6,2,1]));
-        assert!(!rise_or_fall(&vec![1,3,2,4,5]));
-        assert!(!rise_or_fall(&vec![8,6,4,4,1]));
-        assert!(rise_or_fall(&vec![1,3,6,7,9]));
+        assert!(rise_or_fall(&vec![7, 6, 4, 2, 1]));
+        assert!(rise_or_fall(&vec![1, 2, 7, 8, 9]));
+        assert!(rise_or_fall(&vec![9, 7, 6, 2, 1]));
+        assert!(!rise_or_fall(&vec![1, 3, 2, 4, 5]));
+        assert!(!rise_or_fall(&vec![8, 6, 4, 4, 1]));
+        assert!(rise_or_fall(&vec![1, 3, 6, 7, 9]));
     }
-
 
     #[test]
     fn test_part2() {
@@ -149,6 +156,6 @@ mod tests {
         1 3 2 4 5
         8 6 4 4 1
         1 3 6 7 9";
-        assert_eq!(part2(&input_generator(&input)), 0);
+        assert_eq!(part2(&input_generator(&input)), 4);
     }
 }
