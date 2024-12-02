@@ -1,24 +1,70 @@
 /*
  * Day 2, Part 1.
  *
+ * Ok, so we're reading rows of data, each with 5 sequential levels.
+ * Ah ha, doing something I sometimes forget to do, the actual data has a varying number of levels, not a fixed number, so we'll need to think about that
+ * I suspect that means that we have a Vector of Vectors of u32's, so each are variable length.
+ *
+ * We then need to filter the list based on a predicate that can be ascertained from reviewing the list.
+ * The second rpedicate, any two adjacant level differs by at least one and at most three is easy to cehck, as the predicate relies on no outside knowledge
+ * But the levels are either all increasing or all decreasing requires either keeping state from item to item, or running over the list twice.
+ *
+ * My gut feel is to do a check to mark as unsafe if "direction changes" or if the change is outside of 1..3
+ *
  */
-
-#[aoc_generator(day2)]
-pub fn input_generator(input: &str) -> Vec<(i32, i32)> {
-    todo!()
+pub fn list_from_str(line: &str) -> Vec<i32> {
+    line.split_whitespace()
+        .map(|num| num.parse::<i32>().expect("Must be numbers"))
+        .collect()
 }
 
-#[aoc(day2, part1, i32)]
-pub fn part1(input: &Vec<(i32, i32)>) -> i32 {
-    todo!()
+#[aoc_generator(day2)]
+pub fn input_generator(input: &str) -> Vec<Vec<i32>> {
+    input.lines().map(list_from_str).collect()
+}
+
+#[aoc(day2, part1, usize)]
+pub fn part1(input: &Vec<Vec<i32>>) -> usize {
+    input
+        .iter() // For each report card
+        .filter(|report| {
+            // Filter it down if
+            report
+                .windows(2) // For each pair of values
+                .all(
+                    // They all...
+                    |pair| {
+                        let diff = pair[0].abs_diff(pair[1]);
+                        diff >= 1 && diff <= 3 // Have a difference of 1-3
+                    },
+                )
+        }) // And then filter out
+        .filter(|report| {
+            report // For each report
+                .windows(2) // For each pair of values
+                .fold(0, |dir, pair| {
+                    if pair[0] < pair[1] && (dir == 0 || dir == 1) {
+                        1
+                    }
+                    // If the last pair was increasing or the start
+                    else if pair[0] > pair[1] && (dir == 0 || dir == -1) {
+                        -1
+                    }
+                    // Of if the last pair was decreasing or the start
+                    else {
+                        -99
+                    } // Otherwise signal an error
+                })
+                != -99 // Check for any errors
+        })
+        .count()
 }
 
 /*
- * Ok, Part 2, this time we're counting the number of occorences in the right list instead of multiplying directly.
- * We can use a counter to count the right side, and then we can map the left list by multiplying it by the counts on the right.
+ * Day 2, Part 2
  */
-#[aoc(day2, part2, i32)]
-pub fn part2(input: &Vec<(i32, i32)>) -> i32 {
+#[aoc(day2, part2, usize)]
+pub fn part2(input: &Vec<Vec<i32>>) -> usize {
     todo!()
 }
 
