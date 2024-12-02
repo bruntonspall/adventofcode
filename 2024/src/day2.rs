@@ -23,40 +23,44 @@ pub fn input_generator(input: &str) -> Vec<Vec<i32>> {
     input.lines().map(list_from_str).collect()
 }
 
+pub fn high_varience(report: &Vec<i32>) -> bool {
+    // Filter it down if
+    report
+        .windows(2) // For each pair of values
+        .all(
+            // They all...
+            |pair| {
+                let diff = pair[0].abs_diff(pair[1]);
+                diff >= 1 && diff <= 3 // Have a difference of 1-3
+            },
+        )
+}
+
+pub fn rise_or_fall(report: &Vec<i32>) -> bool {
+    report // For each report
+        .windows(2) // For each pair of values
+        .fold(0, |dir, pair| {
+            if pair[0] < pair[1] && (dir == 0 || dir == 1) {
+                1
+            }
+            // If the last pair was increasing or the start
+            else if pair[0] > pair[1] && (dir == 0 || dir == -1) {
+                -1
+            }
+            // Of if the last pair was decreasing or the start
+            else {
+                -99
+            } // Otherwise signal an error
+        })
+        != -99 // Check for any errors
+}
+
 #[aoc(day2, part1, usize)]
 pub fn part1(input: &Vec<Vec<i32>>) -> usize {
     input
         .iter() // For each report card
-        .filter(|report| {
-            // Filter it down if
-            report
-                .windows(2) // For each pair of values
-                .all(
-                    // They all...
-                    |pair| {
-                        let diff = pair[0].abs_diff(pair[1]);
-                        diff >= 1 && diff <= 3 // Have a difference of 1-3
-                    },
-                )
-        }) // And then filter out
-        .filter(|report| {
-            report // For each report
-                .windows(2) // For each pair of values
-                .fold(0, |dir, pair| {
-                    if pair[0] < pair[1] && (dir == 0 || dir == 1) {
-                        1
-                    }
-                    // If the last pair was increasing or the start
-                    else if pair[0] > pair[1] && (dir == 0 || dir == -1) {
-                        -1
-                    }
-                    // Of if the last pair was decreasing or the start
-                    else {
-                        -99
-                    } // Otherwise signal an error
-                })
-                != -99 // Check for any errors
-        })
+        .filter(|report| high_varience(*report)) // And then filter out those with high varience
+        .filter(|report| rise_or_fall(*report)) // Filter out those that don't consistently rise or fall
         .count()
 }
 
@@ -91,7 +95,7 @@ pub fn part2(input: &Vec<Vec<i32>>) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use crate::day2::{input_generator, part1, part2, permutate_list};
+    use crate::day2::{high_varience,rise_or_fall, input_generator, part1, part2, permutate_list};
 
     #[test]
     fn test_part1() {
@@ -115,6 +119,27 @@ mod tests {
             vec![vec![4, 6, 8], vec![2, 6, 8], vec![2, 4, 8], vec![2, 4, 6]]
         );
     }
+
+    #[test]
+    fn test_high_varience() {
+        assert!(high_varience(&vec![7,6,4,2,1]));
+        assert!(!high_varience(&vec![1,2,7,8,9]));
+        assert!(!high_varience(&vec![9,7,6,2,1]));
+        assert!(high_varience(&vec![1,3,2,4,5]));
+        assert!(!high_varience(&vec![8,6,4,4,1]));
+        assert!(high_varience(&vec![1,3,6,7,9]));
+    }
+
+    #[test]
+    fn test_increase_or_decrease() {
+        assert!(rise_or_fall(&vec![7,6,4,2,1]));
+        assert!(rise_or_fall(&vec![1,2,7,8,9]));
+        assert!(rise_or_fall(&vec![9,7,6,2,1]));
+        assert!(!rise_or_fall(&vec![1,3,2,4,5]));
+        assert!(!rise_or_fall(&vec![8,6,4,4,1]));
+        assert!(rise_or_fall(&vec![1,3,6,7,9]));
+    }
+
 
     #[test]
     fn test_part2() {
