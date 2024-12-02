@@ -8,6 +8,8 @@ use std::str::FromStr;
  * Because we want to sort the lists, we're going to inefficiently use two iterators, one taking all the first of the pair, and one taking all of the second of the pair.  We'll push those into a vector, sort it, and then we can zip them up with an iterator over the pair, finding the absolute difference between them.
  * 
  * Ok, parsing integers from strings is a bit of faff.  In this case we know we have good inputs, so I've used expect to handle the Try.  That consumes an OK and panics on an Err.  A better thing here would be to have a match that handles the error appropriately, but in this case, panicking is probably the right move.
+ * 
+ * Ok, so lets do part 1.  We're going to iterate over the list of numbers, pushing each item into a pair of vectors, and then we'll sort the vectors, and then zip them and total up the differences.
  */
 
  pub fn pair_from_str(line: &str) -> (i32, i32) {
@@ -22,13 +24,25 @@ pub fn input_generator(input: &str) -> Vec<(i32, i32)> {
     input.lines().map(|line|pair_from_str(line)).collect()
 }    
 
-#[aoc(day1, part1, u32)]
-pub fn part1(input: &Vec<(i32,i32)>) -> usize {
-    todo!();
+#[aoc(day1, part1, i32)]
+pub fn part1(input: &Vec<(i32,i32)>) -> i32 {
+    let mut left: Vec<i32> = Vec::new();
+    let mut right: Vec<i32> = Vec::new();
+    let mut total: i32 = 0;
+    for pair in input {
+        left.push(pair.0);
+        right.push(pair.1);
+    }
+    left.sort();
+    right.sort();
+    for pair in left.iter().zip(right) {
+        total += if *pair.0 > pair.1 { pair.0 - pair.1 } else {pair.1 - pair.0}
+    }
+    total
 }
 
-#[aoc(day1, part2, u32)]
-pub fn part2(input: &Vec<(i32,i32)>) -> usize {
+#[aoc(day1, part2, i32)]
+pub fn part2(input: &Vec<(i32,i32)>) -> i32 {
     todo!();
 }
 
