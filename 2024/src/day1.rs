@@ -38,14 +38,20 @@ pub fn part1(input: &Vec<(i32, i32)>) -> i32 {
     }
     left.sort();
     right.sort();
-    for pair in left.iter().zip(right) {
-        total += if *pair.0 > pair.1 {
-            pair.0 - pair.1
-        } else {
-            pair.1 - pair.0
-        }
-    }
-    total
+    // ok, we can simplyfy this down to a simple map and then a sum
+    //
+    // for pair in left.iter().zip(right) {
+    //     total += if *pair.0 > pair.1 {
+    //         pair.0 - pair.1
+    //     } else {
+    //         pair.1 - pair.0
+    //     }
+    // }
+    // total
+    left.iter()
+        .zip(right)
+        .map(|pair| (pair.0 - pair.1).abs())
+        .sum()
 }
 
 #[aoc(day1, part2, i32)]
