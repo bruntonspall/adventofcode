@@ -1,3 +1,4 @@
+use counter::Counter;
 use std::str::FromStr;
 
 /*
@@ -31,7 +32,7 @@ pub fn input_generator(input: &str) -> Vec<(i32, i32)> {
 pub fn part1(input: &Vec<(i32, i32)>) -> i32 {
     let mut left: Vec<i32> = Vec::new();
     let mut right: Vec<i32> = Vec::new();
-    let mut total: i32 = 0;
+    // let mut total: i32 = 0;
     for pair in input {
         left.push(pair.0);
         right.push(pair.1);
@@ -54,9 +55,19 @@ pub fn part1(input: &Vec<(i32, i32)>) -> i32 {
         .sum()
 }
 
+/*
+ * Ok, Part 2, this time we're counting the number of occorences in the right list instead of multiplying directly.
+ * We can use a counter to count the right side, and then we can map the left list by multiplying it by the counts on the right.
+ */
 #[aoc(day1, part2, i32)]
 pub fn part2(input: &Vec<(i32, i32)>) -> i32 {
-    todo!();
+    let mut counter: Counter<i32, i32> = Counter::new();
+    // We have to use for each here, rather than map, because we're after the side effect rather than the result
+    input.iter().for_each(|pair| counter[&pair.1] += 1);
+    input
+        .iter()
+        .map(|pair| counter.get(&pair.0).unwrap_or(&0) * pair.0)
+        .sum()
 }
 
 #[cfg(test)]
@@ -103,5 +114,16 @@ mod tests {
 3   9
 3   3";
         assert_eq!(part1(&input_generator(&input)), 11);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = "3   4
+4   3
+2   5
+1   3
+3   9
+3   3";
+        assert_eq!(part2(&input_generator(&input)), 31);
     }
 }
