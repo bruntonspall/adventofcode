@@ -61,16 +61,37 @@ pub fn part1(input: &Vec<Vec<i32>>) -> usize {
 }
 
 /*
- * Day 2, Part 2
+ * Day 2, Part 2 - Oh My!
+ *
+ * Reading this, the report is safe if any one of the numbers if removed from the report
+ * At first I thought that maybe I could use the same filters to ignore one error, but that's both hard and of course may not fix it.
+ * If you have numbers a b c, where a to b is an error and b to c is an error, then we'd need to skip 2 errors.
+ * Instead, I think we need to create permutations of the input report, with each number missing, plus the original, and then mark it as safe if any of the permutations are safe
+ *
+ * The any predicate should work for this, but the hard bit for me is finding a way to generate that list of permutations.
+ * I was going to consider iterators or generators, but honestly, sometimes just brute force it!
  */
+
+pub fn permutate_list(input: &Vec<i32>) -> Vec<Vec<i32>> {
+    let mut v: Vec<Vec<i32>> = Vec::new();
+    for (index, value) in input.iter().enumerate() {
+        let mut n = input.clone();
+        n.remove(index);
+        v.push(n);
+    }
+    return v;
+}
+
 #[aoc(day2, part2, usize)]
 pub fn part2(input: &Vec<Vec<i32>>) -> usize {
-    todo!()
+    /* This is exactly what was in part1, but with an any applied to the post generator set */
+    /* Ok, take 2, copying over the bits from part 1 was hard, so we're going to refactor part 1 into predicates to make it cleaner */
+    todo!();
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::day2::{input_generator, part1, part2};
+    use crate::day2::{input_generator, part1, part2, permutate_list};
 
     #[test]
     fn test_part1() {
@@ -81,6 +102,18 @@ mod tests {
         8 6 4 4 1
         1 3 6 7 9";
         assert_eq!(part1(&input_generator(&input)), 2);
+    }
+
+    #[test]
+    fn test_permutate_list() {
+        assert_eq!(
+            permutate_list(&vec![1, 2, 3]),
+            vec![vec![2, 3], vec![1, 3], vec![1, 2]]
+        );
+        assert_eq!(
+            permutate_list(&vec![2, 4, 6, 8]),
+            vec![vec![4, 6, 8], vec![2, 6, 8], vec![2, 4, 8], vec![2, 4, 6]]
+        );
     }
 
     #[test]
