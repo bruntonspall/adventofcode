@@ -78,7 +78,7 @@ pub fn part1(input: &Vec<Vec<i32>>) -> usize {
 
 pub fn permutate_list(input: &Vec<i32>) -> Vec<Vec<i32>> {
     let mut v: Vec<Vec<i32>> = Vec::new();
-    for (index, value) in input.iter().enumerate() {
+    for (index, _) in input.iter().enumerate() {
         let mut n = input.clone();
         n.remove(index);
         v.push(n);
