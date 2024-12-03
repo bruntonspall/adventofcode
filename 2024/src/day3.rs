@@ -16,10 +16,10 @@ use regex::Regex;
 pub enum Command {
     ENABLE,
     DISABLE,
-    MUL,
+    MUL(u32, u32),
 }
 
-type GeneratorResult = Vec<(Command, u32, u32)>;
+type GeneratorResult = Vec<Command>;
 type RunResult = u32;
 
 #[aoc_generator(day3)]
@@ -30,10 +30,9 @@ pub fn input_generator(input: &str) -> GeneratorResult {
     re.captures_iter(input)
         .map(|c| c.extract())
         .map(|(_, [cmd, a, b])| match cmd {
-            "do" => (Command::ENABLE, 0, 0),
-            "don't" => (Command::DISABLE, 0, 0),
-            "mul" => (
-                Command::MUL,
+            "do" => Command::ENABLE,
+            "don't" => Command::DISABLE,
+            "mul" => Command::MUL(
                 a.parse::<u32>().expect("Failed to parse number"),
                 b.parse::<u32>().expect("Failed to parse number"),
             ),
@@ -45,7 +44,13 @@ pub fn input_generator(input: &str) -> GeneratorResult {
 #[aoc(day3, part1, RunResult)]
 pub fn part1(input: &GeneratorResult) -> RunResult {
     /* Well this looks easy, I wonder what the catch is... */
-    input.iter().map(|(_, a, b)| a * b).sum()
+    input
+        .iter()
+        .map(|cmd| match cmd {
+            Command::MUL(a, b) => a * b,
+            _ => 0,
+        })
+        .sum()
 }
 
 /*
@@ -63,14 +68,14 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
 pub fn part2(input: &GeneratorResult) -> RunResult {
     input
         .iter()
-        .fold((0, 1), |acc, (cmd, a, b)| match cmd {
-            Command::ENABLE => (acc.0, 1),
-            Command::DISABLE => (acc.0, 0),
-            Command::MUL => {
-                if acc.1 == 1 {
-                    (acc.0 + (a * b), acc.1)
+        .fold((0, true), |(sum, active), cmd| match cmd {
+            Command::ENABLE => (sum, true),
+            Command::DISABLE => (sum, false),
+            Command::MUL(a, b) => {
+                if active {
+                    (sum + (a * b), true)
                 } else {
-                    (acc.0, acc.1)
+                    (sum, active)
                 }
             }
         })
@@ -83,22 +88,22 @@ mod tests {
 
     #[test]
     fn test_generator() {
-        assert_eq!(input_generator(&"xmul(2,4)x"), vec![(Command::MUL, 2, 4)]);
+        assert_eq!(input_generator(&"xmul(2,4)x"), vec![Command::MUL(2, 4)]);
         assert_eq!(
             input_generator(&"xmul(2,4)xmul(4,8)"),
-            vec![(Command::MUL, 2, 4), (Command::MUL, 4, 8)]
+            vec![Command::MUL(2, 4), Command::MUL(4, 8)]
         );
         assert_eq!(
             input_generator(&"xmul(2,4)xthen(mul(11,8)"),
-            vec![(Command::MUL, 2, 4), (Command::MUL, 11, 8)]
+            vec![Command::MUL(2, 4), Command::MUL(11, 8)]
         );
         assert_eq!(
             input_generator(&"do()xmul(2,4)xthendon't()(mul(11,8)"),
             vec![
-                (Command::ENABLE, 0, 0),
-                (Command::MUL, 2, 4),
-                (Command::DISABLE, 0, 0),
-                (Command::MUL, 11, 8)
+                Command::ENABLE,
+                Command::MUL(2, 4),
+                Command::DISABLE,
+                Command::MUL(11, 8)
             ]
         );
     }
