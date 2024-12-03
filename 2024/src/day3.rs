@@ -37,9 +37,16 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
 }
 
 /*
- * Day 2, Part 2
+ * Day 2, Part 2 - State machines
  *
+ * Oh, ok, this is more fun.  Now we need to parse out a series of instructions, the enable and the disable instruction.
+ * Having learned from previous years, careful reading indicates that this isn't like a stacking system, two don'ts followed by a do still enables mul instructions.
+ * There's a number of ways we could do this, but I'm not sure my regex fu is good enough to handle some of them.
+ * We could use the regex to essentially delete all characters between the Dont and the next do, but I suspect that would have some hostile input, like dodoxxxdontnt, which might cause issues.
+ * Alternately, we can parse for either mul, do, and don't tokens, and then run along the stream of tokens, multiplying and adding only when the state is enabled.  We'd use a fold left with a tuple (or struct), starting something like (0, true), and if we see don't, we'd return (sum, false). if we see do, we return (sum, true) and if we see mul, if the second flag is true, we add the sum to the accumulator.
+ * The hard part here for me is the regex extracting those commands, I might generate a triple instead of just the pair, with the first argument indicating the command type
  */
+
 
 #[aoc(day3, part2, RunResult)]
 pub fn part2(input: &GeneratorResult) -> RunResult {
