@@ -12,20 +12,32 @@ Regex looks like it operates by creating a new regex string, and then we can use
 
 use regex::Regex;
 
-type GeneratorResult = Vec<(u32, u32)>;
+#[derive(PartialEq, Debug)]
+pub enum Command {
+    ENABLE,
+    DISABLE,
+    MUL,
+}
+
+type GeneratorResult = Vec<(Command, u32, u32)>;
 type RunResult = u32;
 
 #[aoc_generator(day3)]
 pub fn input_generator(input: &str) -> GeneratorResult {
-    let re = Regex::new(r"mul\((\d+),(\d+)\)").expect("Regex compilation shouldn't fail!");
+    let re =
+        Regex::new(r"(mul|do|don't)\((\d*),?(\d*)\)").expect("Regex compilation shouldn't fail!");
     /* In this case, we're expecting just one really big line, so return a vector of multiplications */
     re.captures_iter(input)
         .map(|c| c.extract())
-        .map(|(_, [a, b])| {
-            (
+        .map(|(_, [cmd, a, b])| match cmd {
+            "do" => (Command::ENABLE, 0, 0),
+            "don't" => (Command::DISABLE, 0, 0),
+            "mul" => (
+                Command::MUL,
                 a.parse::<u32>().expect("Failed to parse number"),
                 b.parse::<u32>().expect("Failed to parse number"),
-            )
+            ),
+            _ => panic!("This shouldn't happen"),
         })
         .collect()
 }
@@ -33,7 +45,7 @@ pub fn input_generator(input: &str) -> GeneratorResult {
 #[aoc(day3, part1, RunResult)]
 pub fn part1(input: &GeneratorResult) -> RunResult {
     /* Well this looks easy, I wonder what the catch is... */
-    input.iter().map(|(a, b)| a * b).sum()
+    input.iter().map(|(_, a, b)| a * b).sum()
 }
 
 /*
@@ -47,10 +59,22 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
  * The hard part here for me is the regex extracting those commands, I might generate a triple instead of just the pair, with the first argument indicating the command type
  */
 
-
 #[aoc(day3, part2, RunResult)]
 pub fn part2(input: &GeneratorResult) -> RunResult {
-    todo!();
+    input
+        .iter()
+        .fold((0, 1), |acc, (cmd, a, b)| match cmd {
+            Command::ENABLE => (acc.0, 1),
+            Command::DISABLE => (acc.0, 0),
+            Command::MUL => {
+                if acc.1 == 1 {
+                    (acc.0 + (a * b), acc.1)
+                } else {
+                    (acc.0, acc.1)
+                }
+            }
+        })
+        .0
 }
 
 #[cfg(test)]
@@ -59,11 +83,23 @@ mod tests {
 
     #[test]
     fn test_generator() {
-        assert_eq!(input_generator(&"xmul(2,4)x"), vec![(2, 4)]);
-        assert_eq!(input_generator(&"xmul(2,4)xmul(4,8)"), vec![(2, 4), (4, 8)]);
+        assert_eq!(input_generator(&"xmul(2,4)x"), vec![(Command::MUL, 2, 4)]);
+        assert_eq!(
+            input_generator(&"xmul(2,4)xmul(4,8)"),
+            vec![(Command::MUL, 2, 4), (Command::MUL, 4, 8)]
+        );
         assert_eq!(
             input_generator(&"xmul(2,4)xthen(mul(11,8)"),
-            vec![(2, 4), (11, 8)]
+            vec![(Command::MUL, 2, 4), (Command::MUL, 11, 8)]
+        );
+        assert_eq!(
+            input_generator(&"do()xmul(2,4)xthendon't()(mul(11,8)"),
+            vec![
+                (Command::ENABLE, 0, 0),
+                (Command::MUL, 2, 4),
+                (Command::DISABLE, 0, 0),
+                (Command::MUL, 11, 8)
+            ]
         );
     }
 
@@ -75,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        let input = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5)";
-        assert_eq!(part2(&input_generator(&input)), 0);
+        let input = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
+        assert_eq!(part2(&input_generator(&input)), 48);
     }
 }
