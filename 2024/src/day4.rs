@@ -155,13 +155,59 @@ pub fn part1(grid: &GeneratorResult) -> RunResult {
 }
 
 /*
- * Day 4, Part 2
+ * Day 4, Part 2 - I can see stars everywhere
  *
+ * Ok, this looks horrendous at first, but actually it's just a variation of the previous approach.
+ * Instead of searching for X's and then walking 3 steps in a direction, we're now going to look for 'A's first.
+ * We're then going to look in the 4 diagonal directions, for specificallly, 'M' and 'S' tokens.
+ * Again, I could simplify, but I'm  not sure I want to.
+ *
+ *
+ * Update...
+ *
+ * Oh inteersting, where the M and the S are doesn't matter, providing they are opposite.  That's an interesting twist.
+ * So if we find an 'A', we don't know if we're looking for an 'M' or an 'S'.
+ * Easy exhaustice search is to look at all four corners for an M and then look in opposite corner for an S.
+ * To find the opposite corner, I suspect we can multiply the coordinate by -1, becuase (1,1)'s opposite is -1,-1, and 1,-1 is opposite -1,1...
  */
 
 #[aoc(day4, part2, RunResult)]
-pub fn part2(input: &GeneratorResult) -> RunResult {
-    todo!();
+pub fn part2(grid: &GeneratorResult) -> RunResult {
+    let directions = [
+        Coordinate::new(-1, -1),
+        Coordinate::new(1, -1),
+        Coordinate::new(-1, 1),
+        Coordinate::new(1, 1),
+    ];
+    let mut found = 0;
+    for y in 0..grid.height {
+        for x in 0..grid.width {
+            if grid.get(Coordinate::new_usize(x, y)) == 'A' {
+                let c = Coordinate::new_usize(x, y);
+                let mut foundhere = 0;
+                for direction in directions {
+                    // So, I've inverted the booleans. I think that A && B == 'A || 'B, but I'm not sure
+                    // enough that it wont match MAM or .AM for example, so this makes more sense.  Start at
+                    // Finding an A isn't enough, must also find the M and the S in the directions.
+
+                    // Update, that didn't work, it counted each diagonal, not each X.  We need to more clearly match
+                    // only a 5 character sequence.
+                    // The rules says that we need to match each MAS can be written forwards and backwards.
+                    // We might consider counting letters?  2 M's and 2'S's?  No that would match a MAM/SAS cross.
+                    // I think the right model might be to look in each direction for an M and validate that there's an
+                    // S opposite, which should match only 2 possible answers.  We need both to match, so maybe instead of
+                    // a true/false, we count, and only accept if there are 2 instead of just 1.
+                    if grid.get(c + direction) == 'M' && grid.get(c + (direction * -1)) == 'S' {
+                        foundhere += 1
+                    }
+                }
+                if foundhere == 2 {
+                    found += 1;
+                }
+            }
+        }
+    }
+    return found;
 }
 
 #[cfg(test)]
@@ -235,7 +281,16 @@ MXMXAXMASX";
 
     #[test]
     fn test_part2() {
-        let input = "";
-        assert_eq!(part2(&input_generator(&input)), 0);
+        let input = "MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX";
+        assert_eq!(part2(&input_generator(&input)), 9);
     }
 }
