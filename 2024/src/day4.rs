@@ -23,15 +23,18 @@ use std::char;
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Coordinate {
     x: i32,
-    y: i32
+    y: i32,
 }
 
 /* Simple implementation, this might not be needed if I don't need any other methods */
 impl Coordinate {
-    fn new(x: i32, y:i32) -> Self {
+    fn new(x: i32, y: i32) -> Self {
+        Self { x, y }
+    }
+    fn new_usize(x: usize, y: usize) -> Self {
         Self {
-            x,
-            y,
+            x: i32::try_from(x).expect("X out of bounds"),
+            y: i32::try_from(y).expect("Y out of bounds"),
         }
     }
 }
@@ -42,22 +45,33 @@ impl std::ops::Add for Coordinate {
     fn add(self, other: Self) -> Self {
         Self {
             x: self.x + other.x,
-            y: self.y + other.y
+            y: self.y + other.y,
         }
     }
 }
 
-/* Ok, and our grid will hold our array of arrays.  Note I said vector above, but actually, this isn't going to 
+// Multiplying a coordinate by a scalar is a lengthwise multiplication, i.e. (2,3)*3 should be (6,9)
+impl std::ops::Mul<i32> for Coordinate {
+    type Output = Self;
+    fn mul(self, other: i32) -> Self {
+        Self {
+            x: self.x * other,
+            y: self.y * other,
+        }
+    }
+}
+
+/* Ok, and our grid will hold our array of arrays.  Note I said vector above, but actually, this isn't going to
  * change size once initialised, so an array is probably more efficient.
  * We can't define the size in the struct because we don't know it at compile time, only at runtime
- * 
+ *
  * Update: Rust is really pedantic and wont let us create fixed sized arrays of chars, because different chars are different sizes.
  * It feels less efficient, but we're going to use Vector of Vectors instead.
  * */
 pub struct Grid {
     grid: Vec<Vec<char>>,
     width: usize,
-    height: usize
+    height: usize,
 }
 
 impl Grid {
@@ -66,17 +80,21 @@ impl Grid {
         let mut grid = Grid {
             grid: source.clone(), // We're making a copy here, this might make more sense to be a borrow
             height: source.len(),
-            width: source[0].len()
+            width: source[0].len(),
         };
         return grid;
     }
 
     fn get(self: &Self, c: Coordinate) -> char {
         // Number conversions in Rust make me sad... lots of "expect" here.
-        if c.x >= i32::try_from(self.width).expect("Width is way too high") || c.x < 0 || c.y >= i32::try_from(self.height).expect("Height is way too high") || c.y < 0 { 
-            '.' 
-        } else { 
-            self.grid[usize::try_from(c.y).expect("")][usize::try_from(c.x).expect("")] 
+        if c.x >= i32::try_from(self.width).expect("Width is way too high")
+            || c.x < 0
+            || c.y >= i32::try_from(self.height).expect("Height is way too high")
+            || c.y < 0
+        {
+            '.'
+        } else {
+            self.grid[usize::try_from(c.y).expect("")][usize::try_from(c.x).expect("")]
         }
     }
 }
@@ -86,14 +104,54 @@ type RunResult = u32;
 
 #[aoc_generator(day4)]
 pub fn input_generator(input: &str) -> GeneratorResult {
-    Grid::new(&input.lines().map(|x|{
-        x.chars().collect::<Vec<char>>()
-    }).collect::<Vec<Vec<char>>>())
+    Grid::new(
+        &input
+            .lines()
+            .map(|x| x.chars().collect::<Vec<char>>())
+            .collect::<Vec<Vec<char>>>(),
+    )
 }
 
 #[aoc(day4, part1, RunResult)]
-pub fn part1(input: &GeneratorResult) -> RunResult {
-    todo!();
+pub fn part1(grid: &GeneratorResult) -> RunResult {
+    // Ok, we're going to go through the entire grid, looking for 'X' characters.
+    // When we find one, we're then going to try all 8 cardinal directions, and we're going to iterate 3 steps in each direction, looking for 'M', 'A' and 'S' respectively.
+    // I'm going to use a mutable counter for this, because while I could probably do all of that in a number of map/fold left style lines, I think some for loops might be easier to read (for me at least).
+    let directions = [
+        Coordinate::new(-1, -1),
+        Coordinate::new(0, -1),
+        Coordinate::new(1, -1),
+        Coordinate::new(-1, 0),
+        Coordinate::new(1, 0),
+        Coordinate::new(-1, 1),
+        Coordinate::new(0, 1),
+        Coordinate::new(1, 1),
+    ];
+    let mut found = 0;
+    for y in 0..grid.height {
+        // println!("");
+        // print!("Starting row {}: ", y);
+        for x in 0..grid.width {
+            if grid.get(Coordinate::new_usize(x, y)) == 'X' {
+                // print!("X");
+                let c = Coordinate::new_usize(x, y);
+                for direction in directions {
+                    let mut foundhere = true;
+                    for (step, letter) in [(1, 'M'), (2, 'A'), (3, 'S')] {
+                        if grid.get(c + (direction * step)) != letter {
+                            foundhere = false
+                        }
+                    }
+                    if foundhere {
+                        found += 1;
+                    }
+                }
+                // } else {
+                //     print!(".");
+            }
+        }
+    }
+    return found;
 }
 
 /*
@@ -114,23 +172,27 @@ mod tests {
     fn test_coordinate() {
         assert_eq!(Coordinate::new(1, 2).x, 1);
         assert_eq!(Coordinate::new(1, 2).y, 2);
-        assert_eq!(Coordinate::new(1, 2)+Coordinate::new(3, 4), Coordinate::new(4, 6));
-        assert_eq!(Coordinate::new(5, 5)+Coordinate::new(-1, -1), Coordinate::new(4, 4));
+        assert_eq!(
+            Coordinate::new(1, 2) + Coordinate::new(3, 4),
+            Coordinate::new(4, 6)
+        );
+        assert_eq!(
+            Coordinate::new(5, 5) + Coordinate::new(-1, -1),
+            Coordinate::new(4, 4)
+        );
     }
 
     #[test]
     fn test_grid() {
-        let test_grid = Grid::new(&vec![vec!['a', 'b', 'c'],vec!['d', 'e','f']]);
-        assert_eq!(test_grid.get(Coordinate::new(0,0)), 'a');
-        assert_eq!(test_grid.get(Coordinate::new(1,0)), 'b');
-        assert_eq!(test_grid.get(Coordinate::new(0,1)), 'd');
-        assert_eq!(test_grid.get(Coordinate::new(2,1)), 'f');
-        assert_eq!(test_grid.get(Coordinate::new(3,1)), '.');
-        assert_eq!(test_grid.get(Coordinate::new(1,3)), '.');
-        assert_eq!(test_grid.get(Coordinate::new(-3,999)), '.');
+        let test_grid = Grid::new(&vec![vec!['a', 'b', 'c'], vec!['d', 'e', 'f']]);
+        assert_eq!(test_grid.get(Coordinate::new(0, 0)), 'a');
+        assert_eq!(test_grid.get(Coordinate::new(1, 0)), 'b');
+        assert_eq!(test_grid.get(Coordinate::new(0, 1)), 'd');
+        assert_eq!(test_grid.get(Coordinate::new(2, 1)), 'f');
+        assert_eq!(test_grid.get(Coordinate::new(3, 1)), '.');
+        assert_eq!(test_grid.get(Coordinate::new(1, 3)), '.');
+        assert_eq!(test_grid.get(Coordinate::new(-3, 999)), '.');
     }
-
-
 
     #[test]
     fn test_generator() {
@@ -147,19 +209,28 @@ MXMXAXMASX";
         let grid = input_generator(input);
         assert_eq!(grid.width, 10);
         assert_eq!(grid.height, 10);
-        assert_eq!(grid.get(Coordinate::new(0, 0)),'M');
-        assert_eq!(grid.get(Coordinate::new(1, 0)),'M');
-        assert_eq!(grid.get(Coordinate::new(2, 0)),'M');
-        assert_eq!(grid.get(Coordinate::new(3, 0)),'S');
-        assert_eq!(grid.get(Coordinate::new(0, 1)),'M');
-        assert_eq!(grid.get(Coordinate::new(1, 1)),'S');
-        assert_eq!(grid.get(Coordinate::new(9, 9)),'X');
+        assert_eq!(grid.get(Coordinate::new(0, 0)), 'M');
+        assert_eq!(grid.get(Coordinate::new(1, 0)), 'M');
+        assert_eq!(grid.get(Coordinate::new(2, 0)), 'M');
+        assert_eq!(grid.get(Coordinate::new(3, 0)), 'S');
+        assert_eq!(grid.get(Coordinate::new(0, 1)), 'M');
+        assert_eq!(grid.get(Coordinate::new(1, 1)), 'S');
+        assert_eq!(grid.get(Coordinate::new(9, 9)), 'X');
     }
 
     #[test]
     fn test_part1() {
-        let input = "";
-        assert_eq!(part1(&input_generator(&input)), 0);
+        let input = "MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX";
+        assert_eq!(part1(&input_generator(&input)), 18);
     }
 
     #[test]
