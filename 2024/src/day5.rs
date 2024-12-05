@@ -26,7 +26,6 @@ pub fn input_generator(input: &str) -> GeneratorResult {
                 pair[0].parse::<u32>().expect("Numbers only"),
                 pair[1].parse::<u32>().expect("Numbers only"),
             ),
-            _ => (0, 0),
         })
         .collect();
     let right = input
@@ -42,12 +41,12 @@ pub fn input_generator(input: &str) -> GeneratorResult {
     (left, right)
 }
 
-/* Right, to do part one, there's a number of ways to do it.  The easiest, but most inefficient, is 
+/* Right, to do part one, there's a number of ways to do it.  The easiest, but most inefficient, is
  * to go through the input list, one at a time.
  * Because we're looking for rules that accidentally have the wrong order, for example 75,97 when there's a rule 97|75
  * we want to walk backwards through the pages, and check that no page number violates a rule that it must come after.
  * That however requires walking both lists repeatedly, which is horrribly inefficient.
- * We could possibly preprocess the rules into a map, which would mean we could look up the current number, and see 
+ * We could possibly preprocess the rules into a map, which would mean we could look up the current number, and see
  * all the antecedents allowed.
  * This would turn rules:
 75|29
@@ -61,24 +60,60 @@ pub fn input_generator(input: &str) -> GeneratorResult {
  * into something more like this:
  * 75 -> 29,53,47,61,13
  * 97 -> 29,53,75
- * 
+ *
  * This would mean that we walk the input list, and for each number, check whether anything after the input number is in
  * the list of numbers that should be after.
  * That's cleaner and more efficient.  I also have a feeling there must be a helper to build a map from pairs of numbers...
- * Update: Ok, HashMap::from can take a list of key,value, but what it will do is replace duplicates rather than append them, 
+ * Update: Ok, HashMap::from can take a list of key,value, but what it will do is replace duplicates rather than append them,
  * so we'll have to do that by hand
  */
-pub fn map_from_pairs(pairs: Vec<(u32, u32)>) -> HashMap<u32,Vec<u32>> {
-    let mut lookuptable:HashMap<u32,Vec<u32>> = HashMap::new();
-    for (key,value) in pairs {
-        lookuptable.entry(key).or_default().push(value);
+pub fn map_from_pairs(pairs: &Vec<(u32, u32)>) -> HashMap<u32, Vec<u32>> {
+    let mut lookuptable: HashMap<u32, Vec<u32>> = HashMap::new();
+    for (key, value) in pairs {
+        lookuptable.entry(*key).or_default().push(*value);
     }
     lookuptable
 }
 
+pub fn find_valid<'a>(
+    input: &'a Vec<Vec<u32>>,
+    table: &HashMap<u32, Vec<u32>>,
+) -> Vec<&'a Vec<u32>> {
+    // println!("Pages: {:?}", input);
+    // println!("Table: {:?}", table);
+
+    let correct_pages: Vec<&Vec<u32>> = input
+        .iter()
+        .filter(|update| {
+            let mut candidate_iter = update.iter();
+            while let Some(candidate) = candidate_iter.next() {
+                // Check that this number(candidate) is followed by any numbers that must follow it
+                // println!();
+                // print!("Checking {} - ", candidate);
+                let mut check_iter = candidate_iter.clone();
+                while let Some(check) = check_iter.next() {
+                    // print!(" {}", check);
+                    if !table.get(candidate).unwrap_or(&vec![]).contains(check) {
+                        // print!(" - X");
+                        return false;
+                    }
+                }
+            }
+            return true;
+        })
+        .collect();
+    // println!("Correct Pages: {:?}", correct_pages);
+    return correct_pages;
+}
+
 #[aoc(day5, part1, RunResult)]
 pub fn part1(input: &GeneratorResult) -> RunResult {
-    todo!();
+    let table = map_from_pairs(&input.0);
+    let correct_pages = find_valid(&input.1, &table);
+    correct_pages
+        .iter()
+        .map(|pages| pages[pages.len() / 2])
+        .sum()
 }
 
 /*
@@ -112,18 +147,83 @@ mod tests {
 
     #[test]
     fn test_map_from_pairs() {
-        let input = vec![(1,2), (1,3), (2,3), (3,4)];
-        let output = map_from_pairs(input);
-        assert_eq!(output.get(&1), Some(&vec![2,3]));
+        let input = vec![(1, 2), (1, 3), (2, 3), (3, 4)];
+        let output = map_from_pairs(&input);
+        assert_eq!(output.get(&1), Some(&vec![2, 3]));
         assert_eq!(output.get(&2), Some(&vec![3]));
         assert_eq!(output.get(&3), Some(&vec![4]));
         assert_eq!(output.get(&4), None);
     }
 
     #[test]
+    fn test_find_valid() {
+        let input = "47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47";
+        let (pairs, updates) = input_generator(input);
+        let valid = find_valid(&updates, &map_from_pairs(&pairs));
+        assert_eq!(valid.len(), 3);
+        assert_eq!(valid[0], &vec![75, 47, 61, 53, 29]);
+        assert_eq!(valid[1], &vec![97, 61, 53, 29, 13]);
+        assert_eq!(valid[2], &vec![75, 29, 13]);
+    }
+
+    #[test]
     fn test_part1() {
-        let input = "";
-        assert_eq!(part1(&input_generator(&input)), 0);
+        let input = "47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47";
+        assert_eq!(part1(&input_generator(&input)), 143);
     }
 
     #[test]
