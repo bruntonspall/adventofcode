@@ -77,7 +77,7 @@ pub struct Grid {
 impl Grid {
     fn new(source: &Vec<Vec<char>>) -> Self {
         // We're going to initialise from the collection becase we want to know the length up front
-        let mut grid = Grid {
+        let grid = Grid {
             grid: source.clone(), // We're making a copy here, this might make more sense to be a borrow
             height: source.len(),
             width: source[0].len(),
