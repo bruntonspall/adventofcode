@@ -9,6 +9,8 @@
 * then a vector for each update.
 */
 
+use std::collections::HashMap;
+
 type GeneratorResult = (Vec<(u32, u32)>, Vec<Vec<u32>>);
 type RunResult = u32;
 
@@ -38,6 +40,40 @@ pub fn input_generator(input: &str) -> GeneratorResult {
         })
         .collect();
     (left, right)
+}
+
+/* Right, to do part one, there's a number of ways to do it.  The easiest, but most inefficient, is 
+ * to go through the input list, one at a time.
+ * Because we're looking for rules that accidentally have the wrong order, for example 75,97 when there's a rule 97|75
+ * we want to walk backwards through the pages, and check that no page number violates a rule that it must come after.
+ * That however requires walking both lists repeatedly, which is horrribly inefficient.
+ * We could possibly preprocess the rules into a map, which would mean we could look up the current number, and see 
+ * all the antecedents allowed.
+ * This would turn rules:
+75|29
+75|53
+97|29
+97|53
+75|47
+97|75
+75|61
+75|13
+ * into something more like this:
+ * 75 -> 29,53,47,61,13
+ * 97 -> 29,53,75
+ * 
+ * This would mean that we walk the input list, and for each number, check whether anything after the input number is in
+ * the list of numbers that should be after.
+ * That's cleaner and more efficient.  I also have a feeling there must be a helper to build a map from pairs of numbers...
+ * Update: Ok, HashMap::from can take a list of key,value, but what it will do is replace duplicates rather than append them, 
+ * so we'll have to do that by hand
+ */
+pub fn map_from_pairs(pairs: Vec<(u32, u32)>) -> HashMap<u32,Vec<u32>> {
+    let mut lookuptable:HashMap<u32,Vec<u32>> = HashMap::new();
+    for (key,value) in pairs {
+        lookuptable.entry(key).or_default().push(value);
+    }
+    lookuptable
 }
 
 #[aoc(day5, part1, RunResult)]
@@ -72,6 +108,16 @@ mod tests {
             vec![vec![75, 47, 61, 53, 29], vec![75, 29, 13]],
         );
         assert_eq!(expected, input_generator(input));
+    }
+
+    #[test]
+    fn test_map_from_pairs() {
+        let input = vec![(1,2), (1,3), (2,3), (3,4)];
+        let output = map_from_pairs(input);
+        assert_eq!(output.get(&1), Some(&vec![2,3]));
+        assert_eq!(output.get(&2), Some(&vec![3]));
+        assert_eq!(output.get(&3), Some(&vec![4]));
+        assert_eq!(output.get(&4), None);
     }
 
     #[test]
