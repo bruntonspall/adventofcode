@@ -75,6 +75,25 @@ pub fn map_from_pairs(pairs: &Vec<(u32, u32)>) -> HashMap<u32, Vec<u32>> {
     lookuptable
 }
 
+pub fn is_valid_update(update: &Vec<u32>, table: &HashMap<u32, Vec<u32>>) -> bool {
+    let mut candidate_iter = update.iter();
+    while let Some(candidate) = candidate_iter.next() {
+        // Check that this number(candidate) is followed by any numbers that must follow it
+        // println!();
+        // print!("Checking {} - ", candidate);
+        let mut check_iter = candidate_iter.clone();
+        while let Some(check) = check_iter.next() {
+            // print!(" {}", check);
+            if !table.get(candidate).unwrap_or(&vec![]).contains(check) {
+                // print!(" - X");
+                return false;
+            }
+        }
+    }
+    return true;
+
+}
+
 pub fn find_valid<'a>(
     input: &'a Vec<Vec<u32>>,
     table: &HashMap<u32, Vec<u32>>,
@@ -84,23 +103,7 @@ pub fn find_valid<'a>(
 
     let correct_pages: Vec<&Vec<u32>> = input
         .iter()
-        .filter(|update| {
-            let mut candidate_iter = update.iter();
-            while let Some(candidate) = candidate_iter.next() {
-                // Check that this number(candidate) is followed by any numbers that must follow it
-                // println!();
-                // print!("Checking {} - ", candidate);
-                let mut check_iter = candidate_iter.clone();
-                while let Some(check) = check_iter.next() {
-                    // print!(" {}", check);
-                    if !table.get(candidate).unwrap_or(&vec![]).contains(check) {
-                        // print!(" - X");
-                        return false;
-                    }
-                }
-            }
-            return true;
-        })
+        .filter(|update| is_valid_update(update, table))
         .collect();
     // println!("Correct Pages: {:?}", correct_pages);
     return correct_pages;
@@ -119,7 +122,35 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
 /*
  * day5, Part 2
  *
+ * Oh my.  Ok, so firstly, we'll invert find valid to get us just the invalid results.
+ * We then need to "fix_result" for a single result, which will put it in order.
+ * I honestly don't know how to approach this one in any way that is even slightly efficient.
+ * We could go through as we did before, and when we find a number that doesn't fit, we push it
+ * to the back, and try the next number etc.
+ * But I'm not convinced that will actually work, as it wont handle some weird situations.
+ * For example, given [1,2,3,4,5] and {1:4,5}, {2:1,3,4,5}, {3:1,2,3,4,5}, {4:5}, {5:}
+ * It would see 1, not be able to place it and put it to the back, giving [2,3,4,5,1]
+ * It would see 2, and that would be fine to place, giving [3,4,5,1]
+ * It would see 3, and that would be fine to place, giving [4,5,1]
+ * It would see 4, which can't have 1 in, so would go to the back, giving [5,1,4]
+ * It would see 5, which it can't see giving [1,4,5]
+ * It would see 1, and that would be fine to place, giving [4,5]
+ * It would see 4, and that would be fine to place, giving [5]
+ * and it would see 5 and place it, for a total of 2,3,1,4,5
+ *
+ * Huh, maybe it would work... Let's try that
+ * I think the biggest issue is probably catching an infinite loop, so I wonder if we use two lists,
+ * candidates and rejected.  It would iterate through candidates, pushing them to rejected if rejected.
+ * When placing a number, it would then combine candidates and rejected and go again.
+ * If candidates is ever empty with rejected not empty, then we need to panic and error?
  */
+
+fn fix_result<'a>(updates: &'a Vec<u32>, table: &HashMap<u32, Vec<u32>>) -> &'a Vec<u32> {
+    let mut candidates = updates;
+    let rejected:Vec<u32> = vec![];
+    let results:Vec<u32> = vec![];
+    updates
+}
 
 #[aoc(day5, part2, RunResult)]
 pub fn part2(input: &GeneratorResult) -> RunResult {
@@ -224,6 +255,26 @@ mod tests {
 61,13,29
 97,13,75,29,47";
         assert_eq!(part1(&input_generator(&input)), 143);
+    }
+
+    #[test]
+    fn test_fix_results() {
+        let updates = vec![1, 2, 3, 4, 5];
+        let table = map_from_pairs(&vec![
+            (1, 4),
+            (1, 5),
+            (2, 1),
+            (2, 3),
+            (2, 4),
+            (2, 5),
+            (3, 1),
+            (3, 2),
+            (3, 3),
+            (3, 4),
+            (3, 5),
+            (4, 5),
+        ]);
+        assert_eq!(fix_result(&updates, &table), &vec![2, 3, 1, 4, 5]);
     }
 
     #[test]
