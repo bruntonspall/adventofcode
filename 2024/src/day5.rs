@@ -9,7 +9,7 @@
 * then a vector for each update.
 */
 
-use std::collections::HashMap;
+use std::{cmp::Ordering, collections::HashMap};
 
 type GeneratorResult = (Vec<(u32, u32)>, Vec<Vec<u32>>);
 type RunResult = u32;
@@ -91,7 +91,6 @@ pub fn is_valid_update(update: &Vec<u32>, table: &HashMap<u32, Vec<u32>>) -> boo
         }
     }
     return true;
-
 }
 
 pub fn find_valid<'a>(
@@ -107,6 +106,16 @@ pub fn find_valid<'a>(
         .collect();
     // println!("Correct Pages: {:?}", correct_pages);
     return correct_pages;
+}
+
+pub fn find_invalid<'a>(
+    input: &'a Vec<Vec<u32>>,
+    table: &HashMap<u32, Vec<u32>>,
+) -> Vec<&'a Vec<u32>> {
+    input
+        .iter()
+        .filter(|update| !is_valid_update(update, table))
+        .collect()
 }
 
 #[aoc(day5, part1, RunResult)]
@@ -128,7 +137,7 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
  * We could go through as we did before, and when we find a number that doesn't fit, we push it
  * to the back, and try the next number etc.
  * But I'm not convinced that will actually work, as it wont handle some weird situations.
- * For example, given [1,2,3,4,5] and {1:4,5}, {2:1,3,4,5}, {3:1,2,3,4,5}, {4:5}, {5:}
+ * For example, given [1,2,3,4,5] and {1:4,5}, {2:1,3,4,5}, {3:1,3,4,5}, {4:5}, {5:}
  * It would see 1, not be able to place it and put it to the back, giving [2,3,4,5,1]
  * It would see 2, and that would be fine to place, giving [3,4,5,1]
  * It would see 3, and that would be fine to place, giving [4,5,1]
@@ -143,18 +152,43 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
  * candidates and rejected.  It would iterate through candidates, pushing them to rejected if rejected.
  * When placing a number, it would then combine candidates and rejected and go again.
  * If candidates is ever empty with rejected not empty, then we need to panic and error?
+ *
+ * Ok, That's not working.  I cheated and took a look at Jeffs solution - https://www.jeff-horton.uk/advent-of-code-2024/blog/day_5/
+ * This gives me the thing I was not intuiting (although I'm pleased to see that while not exact, we mostly approached
+ * the part1 mostly the same.
+ *
+ * The thing Jeff intuited is that you can compare two numbers, a and b, and determine based on the rules
+ * that if rules[a] contains b, then a must be less than b, but if rules[b] contains a then b must be less than a.
+ * That's a function that compares two numbers and says which is less, which can be used to implement a sort function
  */
 
-fn fix_result<'a>(updates: &'a Vec<u32>, table: &HashMap<u32, Vec<u32>>) -> &'a Vec<u32> {
-    let mut candidates = updates;
-    let rejected:Vec<u32> = vec![];
-    let results:Vec<u32> = vec![];
-    updates
+fn fix_result(updates: &Vec<u32>, table: &HashMap<u32, Vec<u32>>) -> Vec<u32> {
+    let mut sortable_updates = updates.clone();
+    sortable_updates.sort_by(|a, b| {
+        if table.get(a).unwrap_or(&vec![]).contains(b) {
+            // If the rules for a contains B then a comes before b
+            Ordering::Less
+        } else if table.get(b).unwrap_or(&vec![]).contains(a) {
+            // Otherwise ff the rules for b contains a then b comes before a
+            Ordering::Greater
+        } else {
+            // Otherwise, they're about equal so probably shouldn't swap
+            Ordering::Equal
+        }
+    });
+    sortable_updates
 }
 
+/* With that done, we can now go through the list, and get the invalid ones, we can fix them, and then we can total them */
 #[aoc(day5, part2, RunResult)]
 pub fn part2(input: &GeneratorResult) -> RunResult {
-    todo!();
+    let table = map_from_pairs(&input.0);
+    let incorrect_pages = find_invalid(&input.1, &table);
+    incorrect_pages
+        .iter()
+        .map(|pages| fix_result(pages, &table))
+        .map(|pages| pages[pages.len() / 2])
+        .sum()
 }
 
 #[cfg(test)]
@@ -259,7 +293,7 @@ mod tests {
 
     #[test]
     fn test_fix_results() {
-        let updates = vec![1, 2, 3, 4, 5];
+        let updates: Vec<u32> = vec![1, 2, 3, 4, 5];
         let table = map_from_pairs(&vec![
             (1, 4),
             (1, 5),
@@ -268,18 +302,44 @@ mod tests {
             (2, 4),
             (2, 5),
             (3, 1),
-            (3, 2),
             (3, 3),
             (3, 4),
             (3, 5),
             (4, 5),
         ]);
-        assert_eq!(fix_result(&updates, &table), &vec![2, 3, 1, 4, 5]);
+        assert_eq!(fix_result(&updates, &table), vec![2, 3, 1, 4, 5]);
     }
 
     #[test]
     fn test_part2() {
-        let input = "";
-        assert_eq!(part2(&input_generator(&input)), 0);
+        let input = "47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47";
+        assert_eq!(part2(&input_generator(&input)), 123);
     }
 }
