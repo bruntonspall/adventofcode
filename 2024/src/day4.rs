@@ -22,8 +22,8 @@ use std::char;
 /* Here's our coordinate, with an X and Y fields.  We're making sure it can be copied, clones, compared and printed */
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Coordinate {
-    x: i32,
-    y: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
 /* Simple implementation, this might not be needed if I don't need any other methods */
@@ -69,13 +69,13 @@ impl std::ops::Mul<i32> for Coordinate {
  * It feels less efficient, but we're going to use Vector of Vectors instead.
  * */
 pub struct Grid {
-    grid: Vec<Vec<char>>,
-    width: usize,
-    height: usize,
+    pub grid: Vec<Vec<char>>,
+    pub width: usize,
+    pub height: usize,
 }
 
 impl Grid {
-    fn new(source: &Vec<Vec<char>>) -> Self {
+    pub fn new(source: &Vec<Vec<char>>) -> Self {
         // We're going to initialise from the collection becase we want to know the length up front
         let grid = Grid {
             grid: source.clone(), // We're making a copy here, this might make more sense to be a borrow
@@ -85,7 +85,7 @@ impl Grid {
         return grid;
     }
 
-    fn get(self: &Self, c: Coordinate) -> char {
+    pub fn get(self: &Self, c: Coordinate) -> char {
         // Number conversions in Rust make me sad... lots of "expect" here.
         if c.x >= i32::try_from(self.width).expect("Width is way too high")
             || c.x < 0
