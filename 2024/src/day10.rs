@@ -98,22 +98,33 @@ impl Grid {
         trailheads
     }
 
-    pub fn calculate_trailheads(self: &Self) -> HashMap<Coordinate,usize> {
+    pub fn calculate_trailheads(self: &Self) -> (HashSet<(Coordinate, Coordinate)>,HashMap<Coordinate, usize>) {
         let mut scores = HashMap::new();
-        let summit_points: Vec<Coordinate> = self.grid.iter().enumerate().flat_map(|(y,row)|row.iter().enumerate().filter(|(x,cell)|'9' == **cell).map(move |(x, cell)|Coordinate::new_usize(x, y))).collect();
+        let mut connections = HashSet::new();
+        let summit_points: Vec<Coordinate> = self
+            .grid
+            .iter()
+            .enumerate()
+            .flat_map(|(y, row)| {
+                row.iter()
+                    .enumerate()
+                    .filter(|(x, cell)| '9' == **cell)
+                    .map(move |(x, cell)| Coordinate::new_usize(x, y))
+            })
+            .collect();
         println!("Testing all summits");
         for c in summit_points {
-            print!("Summit {:?} :",c);
+            print!("Summit {} :", c);
             for trailhead in self.bfs_trailheads(c) {
-                print!("  TH({:?})-", trailhead );
-                let mut score = scores.entry(trailhead).or_insert(0);
+                connections.insert((c,trailhead));
+                print!("  TH{}=", trailhead);
+                let score = scores.entry(trailhead).or_insert(0);
                 *score += 1;
-                print!("{:?}", score );
+                print!("{}", score);
             }
             println!("");
-
         }
-        scores
+        (connections, scores)
     }
 }
 
@@ -134,6 +145,8 @@ pub fn part2(input: &GeneratorResult) -> RunResult {
 
 #[cfg(test)]
 mod tests {
+    use assert_unordered::assert_eq_unordered;
+
     use crate::day10::*;
 
     #[test]
@@ -200,24 +213,52 @@ mod tests {
 8.....8
 9.....9";
         let grid = input_generator(input);
-        let trailheads = grid.calculate_trailheads();
+        let (connections, trailheads) = grid.calculate_trailheads();
         assert_eq!(trailheads.len(), 1);
         assert_eq!(trailheads.get(&Coordinate { x: 3, y: 0 }), Some(&2));
+        assert_eq!(connections.len(), 2);
+        assert_eq_unordered!(connections, HashSet::from([(Coordinate { x: 0, y: 6 }, Coordinate { x: 3, y: 0 }),(Coordinate { x: 6, y: 6 }, Coordinate { x: 3, y: 0 })]));
 
-        let grid = input_generator("
-..90..9
+        let grid = input_generator("..90..9
 ...1.98
 ...2..7
 6543456
 765.987
 876....
 987....");
-        let trailheads = grid.calculate_trailheads();
+        let (connections, trailheads) = grid.calculate_trailheads();
         assert_eq!(trailheads.len(), 1);
-        assert_eq!(trailheads.get(&Coordinate { x: 3, y: 0 }), Some(&4));
+        assert_eq!(trailheads.get(&Coordinate { x: 3, y: 0 }), Some(&13));
+        assert_eq!(connections.len(), 4);
+        // assert_eq_unordered!(connections, HashSet::from([(Coordinate { x: 0, y: 6 }, Coordinate { x: 3, y: 0 }),(Coordinate { x: 6, y: 6 }, Coordinate { x: 3, y: 0 })]));
 
-        
-
+        let grid = input_generator("10..9..
+2...8..
+3...7..
+4567654
+...8..3
+...9..2
+.....01");
+        let (connections, trailheads) = grid.calculate_trailheads();
+        assert_eq!(trailheads.len(), 2);
+        assert_eq!(trailheads.get(&Coordinate { x: 1, y: 0 }), Some(&1));
+        assert_eq!(trailheads.get(&Coordinate { x: 5, y: 6 }), Some(&2));
+        assert_eq!(connections.len(), 3);
+        // assert_eq_unordered!(connections, HashSet::from([(Coordinate { x: 0, y: 6 }, Coordinate { x: 3, y: 0 }),(Coordinate { x: 6, y: 6 }, Coordinate { x: 3, y: 0 })]));
+        let grid = input_generator("89010123
+78121874
+87430965
+96549874
+45678903
+32019012
+01329801
+10456732");
+        let (connections, trailheads) = grid.calculate_trailheads();
+        assert_eq!(trailheads.len(), 9);
+        /* This isn't true, it wont have a score of 9, it will have a score of 20 because there are 20 different ways to get there */
+        // assert_eq!(trailheads.get(&Coordinate { x: 2, y: 0 }), Some(&9));
+        assert_eq!(trailheads.get(&Coordinate { x: 2, y: 0 }), Some(&20));
+        assert_eq!(connections.len(), 36);
     }
 
     #[test]

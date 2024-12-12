@@ -17,7 +17,7 @@ When we find one, we'll then start a search in all 8 cardinal directions, moving
 I note that we're going to want to think about coordinates and maybe add them together (because a move north is like adding (0,-1) to (x,y)), and so we may want a coordinate structure as well.
 */
 
-use std::char;
+use std::{char, fmt};
 
 /* Here's our coordinate, with an X and Y fields.  We're making sure it can be copied, clones, compared and printed */
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
@@ -58,6 +58,12 @@ impl std::ops::Mul<i32> for Coordinate {
             x: self.x * other,
             y: self.y * other,
         }
+    }
+}
+
+impl fmt::Display for Coordinate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({},{})", self.x, self.y)
     }
 }
 
