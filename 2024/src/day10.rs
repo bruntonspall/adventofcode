@@ -113,21 +113,21 @@ impl Grid {
             .flat_map(|(y, row)| {
                 row.iter()
                     .enumerate()
-                    .filter(|(x, cell)| '9' == **cell)
-                    .map(move |(x, cell)| Coordinate::new_usize(x, y))
+                    .filter(|(_, cell)| '9' == **cell)
+                    .map(move |(x, _)| Coordinate::new_usize(x, y))
             })
             .collect();
-        println!("Testing all summits");
+        // println!("Testing all summits");
         for c in summit_points {
-            print!("Summit {} :", c);
+            // print!("Summit {} :", c);
             for trailhead in self.bfs_trailheads(c) {
                 connections.insert((c, trailhead));
-                print!("  TH{}=", trailhead);
+                // print!("  TH{}=", trailhead);
                 let score = scores.entry(trailhead).or_insert(0);
                 *score += 1;
-                print!("{}", score);
+                // print!("{}", score);
             }
-            println!("");
+            // println!("");
         }
         (connections, scores)
     }
@@ -135,7 +135,7 @@ impl Grid {
 
 #[aoc(day10, part1, RunResult)]
 pub fn part1(grid: &GeneratorResult) -> RunResult {
-    let (connections, trailheads) = grid.calculate_trailheads();
+    let (connections, _) = grid.calculate_trailheads();
 
     connections.len()
 }
@@ -147,7 +147,9 @@ pub fn part1(grid: &GeneratorResult) -> RunResult {
 
 #[aoc(day10, part2, RunResult)]
 pub fn part2(grid: &GeneratorResult) -> RunResult {
-    todo!();
+    let (_, trailheads) = grid.calculate_trailheads();
+
+    trailheads.values().sum::<usize>()
 }
 
 #[cfg(test)]
@@ -276,6 +278,8 @@ mod tests {
         assert_eq!(trailheads.len(), 9);
         /* This isn't true, it wont have a score of 9, it will have a score of 20 because there are 20 different ways to get there */
         // assert_eq!(trailheads.get(&Coordinate { x: 2, y: 0 }), Some(&9));
+        // Ok for part 2 we're going to sum the scores, so lets try that here
+        assert_eq!(trailheads.values().sum::<usize>(), 81);
         assert_eq!(trailheads.get(&Coordinate { x: 2, y: 0 }), Some(&20));
         assert_eq!(connections.len(), 36);
     }
@@ -295,7 +299,14 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        let input = "";
-        assert_eq!(part2(&input_generator(&input)), 0);
+        let input = "89010123
+78121874
+87430965
+96549874
+45678903
+32019012
+01329801
+10456732";
+        assert_eq!(part2(&input_generator(&input)), 81);
     }
 }
