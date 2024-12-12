@@ -20,7 +20,7 @@ I note that we're going to want to think about coordinates and maybe add them to
 use std::char;
 
 /* Here's our coordinate, with an X and Y fields.  We're making sure it can be copied, clones, compared and printed */
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 pub struct Coordinate {
     pub x: i32,
     pub y: i32,
@@ -28,10 +28,10 @@ pub struct Coordinate {
 
 /* Simple implementation, this might not be needed if I don't need any other methods */
 impl Coordinate {
-    fn new(x: i32, y: i32) -> Self {
+    pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
     }
-    fn new_usize(x: usize, y: usize) -> Self {
+    pub fn new_usize(x: usize, y: usize) -> Self {
         Self {
             x: i32::try_from(x).expect("X out of bounds"),
             y: i32::try_from(y).expect("Y out of bounds"),
