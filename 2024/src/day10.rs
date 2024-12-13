@@ -20,7 +20,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use crate::day4::{Coordinate, Grid};
+use crate::utils::{Coordinate, Grid};
 
 type GeneratorResult = Grid;
 type RunResult = usize;

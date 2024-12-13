@@ -25,7 +25,8 @@ use std::{
     collections::HashSet,
 };
 
-pub type Coordinate = (usize, usize);
+use crate::utils::Coordinate;
+
 // Right, obstacles could be a map that goes from coordinate to boolean, and that works.
 // But if we only care about existance, then we can probably use a HashSet, which is fast and easy.
 pub type Obstacles = HashSet<Coordinate>;
@@ -45,17 +46,17 @@ pub type RunResult = usize;
 #[aoc_generator(day6)]
 pub fn input_generator(input: &str) -> GeneratorResult {
     let mut obstacles = Obstacles::new();
-    let mut guard = (Facing::North, (0, 0));
+    let mut guard = (Facing::North, Coordinate::new(0, 0));
     for (y, line) in input.lines().enumerate() {
         for (x, c) in line.chars().enumerate() {
             match c {
                 '#' => {
-                    obstacles.insert((x, y));
+                    obstacles.insert(Coordinate::new_usize(x, y));
                 }
-                '^' => guard = (Facing::North, (x, y)),
-                '>' => guard = (Facing::East, (x, y)),
-                'v' => guard = (Facing::South, (x, y)),
-                '<' => guard = (Facing::West, (x, y)),
+                '^' => guard = (Facing::North, Coordinate::new_usize(x, y)),
+                '>' => guard = (Facing::East, Coordinate::new_usize(x, y)),
+                'v' => guard = (Facing::South, Coordinate::new_usize(x, y)),
+                '<' => guard = (Facing::West, Coordinate::new_usize(x, y)),
                 _ => {}
             }
         }
@@ -69,14 +70,15 @@ pub fn input_generator(input: &str) -> GeneratorResult {
  * But I actually think the input is going to have an obstacle on each edge somewhere,
  * so we can actually use unzip on our set to get streams of x and ys, and then get min and max from those */
 pub fn find_bounds(obstacles: &Obstacles) -> (Coordinate, Coordinate) {
-    obstacles
-        .iter()
-        .fold(((1, 1), (2, 2)), |current, obstacle| {
+    obstacles.iter().fold(
+        (Coordinate::new(1, 1), Coordinate::new(2, 2)),
+        |current, obstacle| {
             (
-                (min(current.0 .0, obstacle.0), min(current.0 .1, obstacle.1)),
-                (max(current.1 .0, obstacle.0), max(current.1 .1, obstacle.1)),
+                Coordinate::new(min(current.0.x, obstacle.x), min(current.0.y, obstacle.y)),
+                Coordinate::new(max(current.1.x, obstacle.x), max(current.1.y, obstacle.y)),
             )
-        })
+        },
+    )
 }
 
 #[aoc(day6, part1, RunResult)]
@@ -84,13 +86,13 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
     let mut exited = false;
     let mut guard = input.1.clone();
     let mut seen = HashSet::new();
-    let ((minx, miny), (maxx, maxy)) = find_bounds(&input.0);
+    let (Coordinate { x: minx, y: miny }, Coordinate { x: maxx, y: maxy }) = find_bounds(&input.0);
     while !exited {
         let next_square = match guard.0 {
-            Facing::North => (guard.1 .0, guard.1 .1 - 1),
-            Facing::East => (guard.1 .0 + 1, guard.1 .1),
-            Facing::South => (guard.1 .0, guard.1 .1 + 1),
-            Facing::West => (guard.1 .0 - 1, guard.1 .1),
+            Facing::North => Coordinate::new(guard.1.x, guard.1.y - 1),
+            Facing::East => Coordinate::new(guard.1.x + 1, guard.1.y),
+            Facing::South => Coordinate::new(guard.1.x, guard.1.y + 1),
+            Facing::West => Coordinate::new(guard.1.x - 1, guard.1.y),
         };
         if input.0.contains(&next_square) {
             guard.0 = match guard.0 {
@@ -99,7 +101,7 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
                 Facing::South => Facing::West,
                 Facing::West => Facing::North,
             }
-        } else if guard.1 .0 < minx || guard.1 .0 > maxx || guard.1 .1 < miny || guard.1 .1 > maxy {
+        } else if guard.1.x < minx || guard.1.x > maxx || guard.1.y < miny || guard.1.y > maxy {
             exited = true;
         } else {
             seen.insert(guard.1);
@@ -137,21 +139,30 @@ mod tests {
 ......#...";
         let (obstacles, guard) = input_generator(input);
         assert_eq!(Facing::North, guard.0);
-        assert_eq!((4, 6), guard.1);
-        assert!(obstacles.contains(&(4, 0)));
-        assert!(obstacles.contains(&(9, 1)));
-        assert!(obstacles.contains(&(2, 3)));
+        assert_eq!(Coordinate::new(4, 6), guard.1);
+        assert!(obstacles.contains(&Coordinate::new(4, 0)));
+        assert!(obstacles.contains(&Coordinate::new(9, 1)));
+        assert!(obstacles.contains(&Coordinate::new(2, 3)));
     }
 
     #[test]
     fn test_find_bounds() {
         assert_eq!(
-            ((1, 1), (3, 2)),
-            find_bounds(&HashSet::from([(1, 1), (1, 2), (3, 1)]))
+            (Coordinate::new(1, 1), Coordinate::new(3, 2)),
+            find_bounds(&HashSet::from([
+                Coordinate::new(1, 1),
+                Coordinate::new(1, 2),
+                Coordinate::new(3, 1)
+            ]))
         );
         assert_eq!(
-            ((1, 1), (4, 7)),
-            find_bounds(&HashSet::from([(1, 1), (1, 7), (3, 1), (4, 3)]))
+            (Coordinate::new(1, 1), Coordinate::new(4, 7)),
+            find_bounds(&HashSet::from([
+                Coordinate::new(1, 1),
+                Coordinate::new(1, 7),
+                Coordinate::new(3, 1),
+                Coordinate::new(4, 3)
+            ]))
         );
     }
 
