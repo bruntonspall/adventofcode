@@ -95,6 +95,8 @@ mod tests {
             Coordinate::new(5, 5) + Coordinate::new(-1, -1),
             Coordinate::new(4, 4)
         );
+        let (x,y):(usize,usize) = (1,2);
+        assert_eq!(Coordinate::new(1, 2), Coordinate::new_usize(x,y))
     }
 
     #[test]
