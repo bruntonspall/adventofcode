@@ -31,6 +31,17 @@ impl std::ops::Add for Coordinate {
     }
 }
 
+// Subtracting one coordinate from another does what you'd expect
+impl std::ops::Sub for Coordinate {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self {
+        Self {
+            x: self.x - other.x,
+            y: self.y - other.y,
+        }
+    }
+}
+
 // Multiplying a coordinate by a scalar is a lengthwise multiplication, i.e. (2,3)*3 should be (6,9)
 impl std::ops::Mul<i32> for Coordinate {
     type Output = Self;
@@ -94,6 +105,10 @@ mod tests {
         assert_eq!(
             Coordinate::new(5, 5) + Coordinate::new(-1, -1),
             Coordinate::new(4, 4)
+        );
+        assert_eq!(
+            Coordinate::new(5, 5) - Coordinate::new(2, 3),
+            Coordinate::new(3, 2)
         );
         let (x, y): (usize, usize) = (1, 2);
         assert_eq!(Coordinate::new(1, 2), Coordinate::new_usize(x, y))
