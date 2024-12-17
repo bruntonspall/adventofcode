@@ -27,10 +27,10 @@ type RunResult = usize;
 #[aoc_generator(day8)]
 pub fn input_generator(input: &str) -> GeneratorResult {
     let mut nodes = HashMap::new();
-    let lines: Vec<&str> = input.lines().collect();
-    let maxx = lines.len();
-    let maxy = lines[0].len();
-    for (y, line) in lines.iter().enumerate() {
+
+    let maxx = input.lines().next().unwrap().len();
+    let maxy = input.lines().count();
+    for (y, line) in input.lines().enumerate() {
         for (x, c) in line.chars().enumerate() {
             if c != '.' {
                 nodes.insert(Coordinate::new_usize(x, y), c);
@@ -67,11 +67,7 @@ pub fn generate_antinodes(
         .collect()
 }
 
-/* Ok, so for part 1, we create the inverted map, we then iterate through each pair, generating antinodes
- * We want to count the unique locations, so we can just insert them all into a set, and then count the total.
-*/
-#[aoc(day8, part1, RunResult)]
-pub fn part1(grid: &GeneratorResult) -> RunResult {
+pub fn find_antinodes_for_grid(grid: &Grid) -> HashSet<Coordinate> {
     let mut antinodes: HashSet<Coordinate> = HashSet::new();
     for coords in invert(grid).values() {
         for pair in coords.iter().combinations(2) {
@@ -80,7 +76,15 @@ pub fn part1(grid: &GeneratorResult) -> RunResult {
             }
         }
     }
-    antinodes.len()
+    antinodes
+}
+
+/* Ok, so for part 1, we create the inverted map, we then iterate through each pair, generating antinodes
+ * We want to count the unique locations, so we can just insert them all into a set, and then count the total.
+*/
+#[aoc(day8, part1, RunResult)]
+pub fn part1(grid: &GeneratorResult) -> RunResult {
+    find_antinodes_for_grid(grid).len()
 }
 
 /*
@@ -179,6 +183,25 @@ mod tests {
 ..........";
 
         assert_eq!(part1(&input_generator(&input)), 4);
+    }
+
+    #[test]
+    fn test_bounds() {
+        let input = "aa..
+.bb.
+..cc
+d.d.";
+        let antinodes = find_antinodes_for_grid(&input_generator(&input));
+        assert_eq_unordered!(
+            antinodes.iter().cloned().collect(),
+            vec![
+                Coordinate::new(2, 0),
+                Coordinate::new(0, 1),
+                Coordinate::new(3, 1),
+                Coordinate::new(1, 2)
+            ]
+        );
+        assert_eq!(antinodes.len(), 4);
     }
 
     #[test]
