@@ -89,12 +89,57 @@ pub fn part1(grid: &GeneratorResult) -> RunResult {
 
 /*
  * day8, Part 2
+ * Interesting, so in the previous case, the generate antinodes would only generate nodes left and right.
+ * But now we turn the nodes into a line, and then calculate all points on the line.
+ * I think in this case, we have a couple of choices...
+ * We can continue the work we've already done, generating points in each direction until they pass the limits
+ * Or given we know two points on a line, we can work out the equation for the line, and then store a series of line
+ * equations, and then find all the intersections between real points and the line equation.
  *
+ * I'm not a strong math person, so I think I prefer the former, but I have a hunch that the latter might be easier.
  */
+
+pub fn generate_harmonic_antinodes(
+    first: Coordinate,
+    second: Coordinate,
+    maxx: i32,
+    maxy: i32,
+) -> Vec<Coordinate> {
+    let d1 = first - second; // This counts backwards from the first coordinate
+    let d2 = second - first; // This counts forwards from the second coordinate
+    let mut t = first;
+    let mut coords = Vec::new();
+    for _ in 0..maxx.max(maxy) {
+        coords.push(t);
+        t = t + d1;
+    }
+    t = second;
+    for _ in 0..maxx.max(maxy) {
+        coords.push(t);
+        t = t + d2;
+    }
+    coords
+        .iter()
+        .filter(|c| c.x >= 0 && c.x < maxx && c.y >= 0 && c.y < maxy)
+        .cloned()
+        .collect()
+}
+
+pub fn find_harmonic_antinodes_for_grid(grid: &Grid) -> HashSet<Coordinate> {
+    let mut antinodes: HashSet<Coordinate> = HashSet::new();
+    for coords in invert(grid).values() {
+        for pair in coords.iter().combinations(2) {
+            for c in generate_harmonic_antinodes(*pair[0], *pair[1], grid.width, grid.height) {
+                antinodes.insert(c);
+            }
+        }
+    }
+    antinodes
+}
 
 #[aoc(day8, part2, RunResult)]
 pub fn part2(grid: &GeneratorResult) -> RunResult {
-    todo!();
+    find_harmonic_antinodes_for_grid(grid).len()
 }
 
 #[cfg(test)]
@@ -223,8 +268,74 @@ d.d.";
     }
 
     #[test]
+    fn test_generate_harmonic_antinodes() {
+        assert_eq_unordered!(
+            generate_harmonic_antinodes(Coordinate::new(2, 2), Coordinate::new(4, 4), 7, 7),
+            vec![
+                Coordinate::new(0, 0),
+                Coordinate::new(2, 2),
+                Coordinate::new(4, 4),
+                Coordinate::new(6, 6)
+            ]
+        );
+        assert_eq_unordered!(
+            generate_harmonic_antinodes(Coordinate::new(4, 2), Coordinate::new(2, 4), 7, 7),
+            vec![
+                Coordinate::new(6, 0),
+                Coordinate::new(4, 2),
+                Coordinate::new(2, 4),
+                Coordinate::new(0, 6)
+            ]
+        );
+    }
+
+    #[test]
+    fn test_example2() {
+        let input = "T.........
+...T......
+.T........
+..........
+..........
+..........
+..........
+..........
+..........
+..........";
+        let grid = input_generator(&input);
+        let antinodes = find_harmonic_antinodes_for_grid(&grid);
+        println!("{antinodes:?}");
+        assert_eq_unordered!(
+            antinodes.iter().cloned().collect(),
+            vec![
+                Coordinate { x: 0, y: 0 },
+                Coordinate { x: 5, y: 0 },
+                Coordinate { x: 3, y: 1 },
+                Coordinate { x: 1, y: 2 },
+                Coordinate { x: 6, y: 2 },
+                Coordinate { x: 9, y: 3 },
+                Coordinate { x: 2, y: 4 },
+                Coordinate { x: 3, y: 6 },
+                Coordinate { x: 4, y: 8 },
+            ]
+        );
+
+        assert_eq!(part2(&grid), 9);
+    }
+
+    #[test]
     fn test_part2() {
-        let input = "";
-        assert_eq!(part2(&input_generator(&input)), 0);
+        let input = "............
+........0...
+.....0......
+.......0....
+....0.......
+......A.....
+............
+............
+........A...
+.........A..
+............
+............";
+        assert_eq!(part2(&input_generator(&input)), 34);
     }
 }
