@@ -62,7 +62,7 @@ pub fn generate_antinodes(
 ) -> Vec<Coordinate> {
     vec![first + (first - second), second + (second - first)]
         .iter()
-        .filter(|c| c.x >= 0 && c.x <= maxx && c.y >= 0 && c.y <= maxy)
+        .filter(|c| c.x >= 0 && c.x < maxx && c.y >= 0 && c.y < maxy)
         .cloned()
         .collect()
 }
