@@ -2,8 +2,8 @@
 * template, Part 1.
 */
 
-type GeneratorResult = Vec<u32>;
-type RunResult = u32;
+type GeneratorResult = Vec<usize>;
+type RunResult = usize;
 
 #[aoc_generator(template)]
 pub fn input_generator(input: &str) -> GeneratorResult {
