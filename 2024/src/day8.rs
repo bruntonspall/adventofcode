@@ -15,13 +15,19 @@ use itertools::Itertools;
 
 use crate::utils::Coordinate;
 
-type GeneratorResult = (HashMap<Coordinate, char>, i32, i32);
+pub struct Grid {
+    map: HashMap<Coordinate, char>,
+    width: i32,
+    height: i32,
+}
+
+type GeneratorResult = Grid;
 type RunResult = usize;
 
 #[aoc_generator(day8)]
 pub fn input_generator(input: &str) -> GeneratorResult {
     let mut nodes = HashMap::new();
-    let lines:Vec<&str> = input.lines().collect();
+    let lines: Vec<&str> = input.lines().collect();
     let maxx = lines.len();
     let maxy = lines[0].len();
     for (y, line) in lines.iter().enumerate() {
@@ -31,35 +37,45 @@ pub fn input_generator(input: &str) -> GeneratorResult {
             }
         }
     }
-    (nodes, maxx as i32, maxy as i32)
+    Grid {
+        map: nodes,
+        width: maxx as i32,
+        height: maxy as i32,
+    }
 }
 
 /* Right, we want to invert the map, so that we have a nodes to coordinate hashmap as well */
-pub fn invert(hm: &HashMap<Coordinate, char>) -> HashMap<char, Vec<Coordinate>> {
+pub fn invert(grid: &Grid) -> HashMap<char, Vec<Coordinate>> {
     let mut results: HashMap<char, Vec<Coordinate>> = HashMap::new();
-    for (coord, c) in hm {
+    for (coord, c) in grid.map.iter() {
         results.entry(*c).or_default().push(*coord);
     }
     results
 }
 
 /* For any pair, generate the antinodes */
-pub fn generate_antinodes(first: Coordinate, second: Coordinate, maxx: &i32, maxy: &i32) -> Vec<Coordinate> {
-    vec![first + (first - second), second + (second - first)].iter().filter(|c| {
-        c.x >= 0 && c.x <= *maxx && c.y >= 0 && c.y <= *maxy
-    }).cloned().collect()
+pub fn generate_antinodes(
+    first: Coordinate,
+    second: Coordinate,
+    maxx: i32,
+    maxy: i32,
+) -> Vec<Coordinate> {
+    vec![first + (first - second), second + (second - first)]
+        .iter()
+        .filter(|c| c.x >= 0 && c.x <= maxx && c.y >= 0 && c.y <= maxy)
+        .cloned()
+        .collect()
 }
 
-
-/* Ok, so for part 1, we create the inverted map, we then iterate through each pair, generating antinodes 
+/* Ok, so for part 1, we create the inverted map, we then iterate through each pair, generating antinodes
  * We want to count the unique locations, so we can just insert them all into a set, and then count the total.
 */
 #[aoc(day8, part1, RunResult)]
-pub fn part1((input, maxx, maxy): &GeneratorResult) -> RunResult {
-    let mut antinodes:HashSet<Coordinate> = HashSet::new();
-    for coords in invert(input).values() {
+pub fn part1(grid: &GeneratorResult) -> RunResult {
+    let mut antinodes: HashSet<Coordinate> = HashSet::new();
+    for coords in invert(grid).values() {
         for pair in coords.iter().combinations(2) {
-            for c in generate_antinodes(*pair[0], *pair[1], maxx, maxy) {
+            for c in generate_antinodes(*pair[0], *pair[1], grid.width, grid.height) {
                 antinodes.insert(c);
             }
         }
@@ -73,7 +89,7 @@ pub fn part1((input, maxx, maxy): &GeneratorResult) -> RunResult {
  */
 
 #[aoc(day8, part2, RunResult)]
-pub fn part2((input, maxx, maxy): &GeneratorResult) -> RunResult {
+pub fn part2(grid: &GeneratorResult) -> RunResult {
     todo!();
 }
 
@@ -98,12 +114,12 @@ mod tests {
 ............
 ............";
 
-        let (hm, maxx, maxy) = input_generator(input);
-        assert_eq!(12, maxx);
-        assert_eq!(12, maxy);
+        let grid = input_generator(input);
+        assert_eq!(12, grid.width);
+        assert_eq!(12, grid.height);
 
         assert_eq_unordered!(
-            hm.keys().collect(),
+            grid.map.keys().collect(),
             vec![
                 &Coordinate::new(8, 1),
                 &Coordinate::new(5, 2),
@@ -114,10 +130,10 @@ mod tests {
                 &Coordinate::new(9, 9),
             ]
         );
-        assert_eq!(hm.get(&Coordinate::new(5, 2)), Some(&'0'));
-        assert_eq!(hm.get(&Coordinate::new(8, 8)), Some(&'A'));
+        assert_eq!(grid.map.get(&Coordinate::new(5, 2)), Some(&'0'));
+        assert_eq!(grid.map.get(&Coordinate::new(8, 8)), Some(&'A'));
 
-        let map = invert(&hm);
+        let map = invert(&grid);
         assert_eq_unordered!(map.keys().collect(), vec![&'0', &'A']);
         assert_eq_unordered!(
             map.get(&'A').unwrap(),
@@ -132,19 +148,19 @@ mod tests {
     #[test]
     fn test_generate_antinodes() {
         assert_eq!(
-            generate_antinodes(Coordinate::new(5, 5), Coordinate::new(6, 7), &10, &10),
+            generate_antinodes(Coordinate::new(5, 5), Coordinate::new(6, 7), 10, 10),
             vec![Coordinate::new(4, 3), Coordinate::new(7, 9)]
         );
         assert_eq!(
-            generate_antinodes(Coordinate::new(6, 7), Coordinate::new(5, 5), &10, &10),
+            generate_antinodes(Coordinate::new(6, 7), Coordinate::new(5, 5), 10, 10),
             vec![Coordinate::new(7, 9), Coordinate::new(4, 3)]
         );
         assert_eq!(
-            generate_antinodes(Coordinate::new(1, 1), Coordinate::new(5, 5), &10, &10),
+            generate_antinodes(Coordinate::new(1, 1), Coordinate::new(5, 5), 10, 10),
             vec![Coordinate::new(9, 9)]
         );
         assert_eq!(
-            generate_antinodes(Coordinate::new(5, 5), Coordinate::new(9, 9), &10, &10),
+            generate_antinodes(Coordinate::new(5, 5), Coordinate::new(9, 9), 10, 10),
             vec![Coordinate::new(1, 1)]
         );
     }
