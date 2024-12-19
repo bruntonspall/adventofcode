@@ -117,7 +117,7 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
  */
 
 #[aoc(day6, part2, RunResult)]
-pub fn part2(input: &GeneratorResult) -> RunResult {
+pub fn part2(_: &GeneratorResult) -> RunResult {
     todo!();
 }
 
