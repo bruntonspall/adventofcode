@@ -5,7 +5,7 @@
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub struct Equation {
     total: u64,
-    args: Vec<String>,
+    args: Vec<u64>,
 }
 
 pub enum Operand {
@@ -16,11 +16,11 @@ pub enum Operand {
 type GeneratorResult = Vec<Equation>;
 type RunResult = usize;
 
-pub fn total(target: u64, args: &Vec<String>, concat: bool) -> u32 {
+pub fn total(target: u64, args: &Vec<u64>, concat: bool) -> u32 {
     pub fn total_rec(
         target: u64,
         running_total: u64,
-        args: &Vec<String>,
+        args: &Vec<u64>,
         index: usize,
         concat: bool,
     ) -> u32 {
@@ -28,51 +28,23 @@ pub fn total(target: u64, args: &Vec<String>, concat: bool) -> u32 {
         if index == args.len() {
             return if running_total == target { 1 } else { 0 };
         }
-        if concat == true {
+        let tot = if concat {
             total_rec(
                 target,
-                (running_total.to_string() + &args[index])
+                (running_total.to_string() + &args[index].to_string())
                     .parse::<u64>()
                     .expect("args must be a number"),
                 args,
                 index + 1,
                 concat,
-            ) + total_rec(
-                target,
-                running_total + args[index].parse::<u64>().expect("args must be a number"),
-                args,
-                index + 1,
-                concat,
-            ) + total_rec(
-                target,
-                running_total * args[index].parse::<u64>().expect("args must be a number"),
-                args,
-                index + 1,
-                concat,
             )
         } else {
-            total_rec(
-                target,
-                running_total + args[index].parse::<u64>().expect("args must be a number"),
-                args,
-                index + 1,
-                concat,
-            ) + total_rec(
-                target,
-                running_total * args[index].parse::<u64>().expect("args must be a number"),
-                args,
-                index + 1,
-                concat,
-            )
-        }
+            0
+        };
+        tot + total_rec(target, running_total + args[index], args, index + 1, concat)
+            + total_rec(target, running_total * args[index], args, index + 1, concat)
     }
-    total_rec(
-        target,
-        args[0].parse::<u64>().expect("args must be a number"),
-        args,
-        1,
-        concat,
-    )
+    total_rec(target, args[0], args, 1, concat)
 }
 
 #[aoc_generator(day7)]
@@ -92,7 +64,7 @@ pub fn input_generator(input: &str) -> GeneratorResult {
                 .next()
                 .unwrap()
                 .split_whitespace()
-                .map(|num| String::from(num))
+                .map(|num| num.parse::<u64>().expect("args must be a number"))
                 .collect();
             Equation {
                 total: sum_s as u64,
@@ -144,7 +116,7 @@ mod tests {
         assert_eq!(
             vec![Equation {
                 total: 7,
-                args: vec![1.to_string(), 2.to_string(), 3.to_string()]
+                args: vec![1, 2, 3]
             }],
             input_generator("7: 1 2 3")
         );
@@ -152,11 +124,11 @@ mod tests {
             vec![
                 Equation {
                     total: 190,
-                    args: vec![10.to_string(), 19.to_string()]
+                    args: vec![10, 19]
                 },
                 Equation {
                     total: 3267,
-                    args: vec![81.to_string(), 40.to_string(), 27.to_string()]
+                    args: vec![81, 40, 27]
                 },
             ],
             input_generator(
@@ -169,19 +141,19 @@ mod tests {
     #[test]
     fn test_total() {
         // Check base case, in this case we should reach 5
-        assert_eq!(1, total(5, &vec!["5".to_string()], false));
+        assert_eq!(1, total(5, &vec![5], false));
 
         // 1+2 and 1*2
-        assert_eq!(1, total(2, &vec!["1".to_string(), "2".to_string()], false));
+        assert_eq!(1, total(2, &vec![1, 2], false));
 
         // 1+2+3=6, 1+2*3=9, 1*2+3=5, 1*2*3=6
-        let args = vec![1.to_string(), 2.to_string(), 3.to_string()];
+        let args = vec![1, 2, 3];
         assert_eq!(2, total(6, &args, false));
         assert_eq!(1, total(5, &args, false));
         assert_eq!(1, total(9, &args, false));
 
         // 1+2+4=7, 1+2*4=12, 1*2+4=6, 1*2*4=8
-        let args = vec![1.to_string(), 2.to_string(), 4.to_string()];
+        let args = vec![1, 2, 4];
         assert_eq!(1, total(6, &args, false));
         assert_eq!(1, total(7, &args, false));
         assert_eq!(1, total(8, &args, false));
@@ -191,13 +163,13 @@ mod tests {
     #[test]
     fn test_total_with_concat() {
         // Check base case, in this case we should reach 5
-        assert_eq!(1, total(5, &vec!["5".to_string()], true));
+        assert_eq!(1, total(5, &vec![5], true));
 
         // 1+2 and 1*2 but not 12
-        assert_eq!(1, total(2, &vec!["1".to_string(), "2".to_string()], true));
+        assert_eq!(1, total(2, &vec![1, 2], true));
 
         // 1+2+3=6, 1+2*3=9, 1*2+3=5, 1*2*3=6, 1||2+3=15, 1||2*3=36, 1||2||3=123, 1+2||3=33, 1*2||3=23
-        let args = vec![1.to_string(), 2.to_string(), 3.to_string()];
+        let args = vec![1, 2, 3];
         assert_eq!(2, total(6, &args, true));
         assert_eq!(1, total(5, &args, true));
         assert_eq!(1, total(9, &args, true));
