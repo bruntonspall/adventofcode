@@ -58,9 +58,16 @@ pub fn input_generator(input: &str) -> GeneratorResult {
 
 #[aoc(day7, part1, RunResult)]
 pub fn part1(input: &GeneratorResult) -> RunResult {
-    input.iter().map(|equation| {
-        if total(equation.total, &equation.args) > 0 { equation.total} else {0}
-    }).sum::<u64>() as usize
+    input
+        .iter()
+        .map(|equation| {
+            if total(equation.total, &equation.args) > 0 {
+                equation.total
+            } else {
+                0
+            }
+        })
+        .sum::<u64>() as usize
 }
 
 /*

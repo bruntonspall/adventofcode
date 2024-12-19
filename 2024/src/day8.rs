@@ -68,11 +68,15 @@ pub fn generate_antinodes(
 }
 
 pub fn find_antinodes_for_grid(grid: &Grid) -> HashSet<Coordinate> {
-    invert(grid).values().flat_map(|coords|{
-        coords.iter().combinations(2).flat_map(|pair| {
-            generate_antinodes(*pair[0], *pair[1], grid.width, grid.height)
+    invert(grid)
+        .values()
+        .flat_map(|coords| {
+            coords
+                .iter()
+                .combinations(2)
+                .flat_map(|pair| generate_antinodes(*pair[0], *pair[1], grid.width, grid.height))
         })
-    }).collect()
+        .collect()
 }
 
 /* Ok, so for part 1, we create the inverted map, we then iterate through each pair, generating antinodes
@@ -122,11 +126,14 @@ pub fn generate_harmonic_antinodes(
 }
 
 pub fn find_harmonic_antinodes_for_grid(grid: &Grid) -> HashSet<Coordinate> {
-    invert(grid).values().flat_map(|coords|{
-        coords.iter().combinations(2).flat_map(|pair| {
-            generate_harmonic_antinodes(*pair[0], *pair[1], grid.width, grid.height)
+    invert(grid)
+        .values()
+        .flat_map(|coords| {
+            coords.iter().combinations(2).flat_map(|pair| {
+                generate_harmonic_antinodes(*pair[0], *pair[1], grid.width, grid.height)
+            })
         })
-    }).collect()
+        .collect()
 }
 
 #[aoc(day8, part2, RunResult)]
