@@ -11,9 +11,19 @@ permalink: "/{% if pagination.pageNumber > 0 %}page/{{ pagination.pageNumber + 1
 {% extends 'page.njk' %}
 
 {% block body %}
-  {% include "posts.njk" %}
+  <div class="mb-8 pb-8">
+    <h2>Welcome to my Advent of Code site</h2>
 
-  {% include "nav.njk" %}
+    <p class="excerpt">This is a small site storing my solutions, explanations and ramblings about the advent of code each year.  I've tried to do the <a href="https://adventofcode.com/">Advent of Code</a> every year for about 7 or 8 years now, but only started putting them into this Github repo back in about 2018 or so.</p>
+    <p>I've tried doing it in Go, in Python, in Rust and using Jupyter Notebooks in python as well.  I enjoy the experience of trying to write up my thoughts, mostly becuase I think the most valuable learning from this activity is in looking at ways in which you look at the problem, and try to solve it, rather than the code you end up with.</p>
+    <p>The most recent year is <a href=/2024/>2024</a> and on that page you can find an introduction to the year and links to every day of the year.</p>
+  <p>Each year has an introductory page listed at the <a href=/tag/year/>year heading page</a>, and you can look back over previous years there.  I've not managed to get the Go years of 2018 and 2019 converted, and I'm unlikely to in quite the same format, so you may also want to checkout the code for this page, and all the code, at the <a href=https://github.com/bruntonspall/adventofcode>Github Repo</a>
+</p>
+<hr/>
+</div>
+{% include "posts.njk" %}
 
-  {% include "tags.njk" %}
+{% include "nav.njk" %}
+
+{% include "tags.njk" %}
 {% endblock %}
