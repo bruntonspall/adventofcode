@@ -2,6 +2,8 @@
 * day9, Part 1.
 */
 
+use std::usize::MAX;
+
 type GeneratorResult = String;
 type RunResult = u64;
 
@@ -91,9 +93,66 @@ pub fn part1(input: &GeneratorResult) -> RunResult {
  *
  */
 
+/// We find a block by finding the first block with the number, and the size by continueing until the block isn't that id
+fn find_block_by_id(input: &[u16], id: u16) -> (usize, usize) {
+    let mut start = 0;
+    let mut size: usize = 0;
+    while input[start] != id {
+        start += 1;
+    }
+    while start + size < input.len() && input[start + size] == id {
+        size += 1;
+    }
+    (start, size)
+}
+
+/// We look for free blocks of at least the right size that are before end
+pub fn find_first_free_of_size(input: &[u16], size: usize, end: usize) -> usize {
+    let mut start = 0;
+    let mut found = 0;
+    while found < size && start < end {
+        while input[start] != FREE {
+            start += 1;
+        }
+        while input[start + found] == FREE && start < end {
+            found += 1;
+            if found == size {
+                return start;
+            }
+        }
+        found = 0;
+        start += 1;
+    }
+    return MAX;
+}
+
+pub fn defragment_without_splits(input: &mut Vec<u16>) -> Vec<u16> {
+    // First we find the last ID in the disk
+    let mut i = input.len() - 1;
+    while input[i] == FREE {
+        i -= 1
+    }
+    let mut id = input[i];
+    // Now we go through them all
+    while id > 0 {
+        let (block, size) = find_block_by_id(input, id);
+        let free = find_first_free_of_size(input, size, block);
+        if free != MAX {
+            for j in 0..size {
+                input[free + j] = id;
+                input[block + j] = FREE;
+            }
+        }
+        id -= 1;
+    }
+    input.clone()
+}
+
 #[aoc(day9, part2, RunResult)]
 pub fn part2(input: &GeneratorResult) -> RunResult {
-    todo!();
+    let mut memory = memory_from_dense_string(input);
+    defragment_without_splits(&mut memory);
+    return checksum(&memory);
 }
 
 #[cfg(test)]
@@ -186,8 +245,52 @@ mod tests {
     }
 
     #[test]
+    fn test_find_size_functions() {
+        let memory = vec![
+            //0 1 2  3     4     5  6  7     8  9  10 11 12    13    14    15 16 17    18    19
+            0, 1, 1, FREE, FREE, 2, 2, FREE, 4, 4, 4, 4, FREE, FREE, FREE, 5, 5, FREE, FREE, FREE,
+            FREE,
+        ];
+        assert_eq!(find_block_by_id(&memory, 5), (15, 2));
+        assert_eq!(find_block_by_id(&memory, 4), (8, 4));
+        assert_eq!(find_block_by_id(&memory, 2), (5, 2));
+        assert_eq!(find_block_by_id(&memory, 1), (1, 2));
+        assert_eq!(find_first_free_of_size(&memory, 1, 20), 3);
+        assert_eq!(find_first_free_of_size(&memory, 2, 20), 3);
+        assert_eq!(find_first_free_of_size(&memory, 3, 20), 12);
+        assert_eq!(find_first_free_of_size(&memory, 4, 20), 17);
+        // Test out of bounds
+        assert_eq!(find_first_free_of_size(&memory, 4, 12), MAX);
+    }
+
+    #[test]
+    fn test_block_defrag() {
+        // This original one shouldn't change at all
+        let mut memory = vec![
+            0, FREE, FREE, 1, 1, 1, FREE, FREE, FREE, FREE, 2, 2, 2, 2, 2,
+        ];
+        defragment_without_splits(&mut memory);
+
+        assert_eq!(
+            memory,
+            vec![0, FREE, FREE, 1, 1, 1, FREE, FREE, FREE, FREE, 2, 2, 2, 2, 2,]
+        );
+
+        // Let's try a new one
+        let mut memory = vec![
+            0, FREE, FREE, 1, 1, 1, FREE, FREE, FREE, FREE, 2, 2, FREE, FREE, 3, 3, 3,
+        ];
+        defragment_without_splits(&mut memory);
+
+        assert_eq!(
+            memory,
+            vec![0, 2, 2, 1, 1, 1, 3, 3, 3, FREE, FREE, FREE, FREE, FREE, FREE, FREE, FREE]
+        );
+    }
+
+    #[test]
     fn test_part2() {
-        let input = "";
-        assert_eq!(part2(&input_generator(&input)), 0);
+        let input = "2333133121414131402";
+        assert_eq!(part2(&input_generator(&input)), 2858);
     }
 }
