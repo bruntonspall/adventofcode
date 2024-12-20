@@ -1,0 +1,10 @@
+{
+    "name": "Bruntonspall Advent Of Code",
+    "description": "A follow along blog of solving the Advent of Code each year",
+    "url": "https://bruntonspall.github.io",
+    "baseUrl": "/adventofcode/",
+    "author": {
+      "handle": "@bruntonspall",
+      "name": "Michael Brunton-Spall"
+    }
+  }

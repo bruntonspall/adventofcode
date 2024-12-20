@@ -1,0 +1,5 @@
+<div class="grid grid-flow-row grid-cols-3 gap-4 mb-2">
+    {%- for tag in tags | filterTagList %}
+        <a href="{{ site.baseUrl }}tag/{{ tag | slugify }}/" class="mx-auto">{{ tag }}</a>
+    {%- endfor %}
+</div>

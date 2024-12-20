@@ -1,0 +1,54 @@
+{% extends 'page.njk' %}
+
+{% block body %}
+    <p>{{url}}</p>
+    <div>
+        <h2>{% if title %}{{ title }}{% else %}{{page.fileSlug }}{%endif%}</h2>
+
+        {% if excerpt %}
+            <p class="excerpt">{{ excerpt }}</p>
+        {% endif %}
+
+        {% if tags %}
+            <div class="mb-2">
+                {% for tag in tags %}
+                    {%- if tag !== "post" -%}
+                        <a class="tag {{ tag | replace('.', '') }}" href="/tag/{{ tag }}">{{ tag }}</a>
+                    {%- endif -%}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if page.date %}
+            {% if page.updatedDate and (page.date|string) !== (page.updatedDate|string) %}
+              <p class="text-sm italic">Last updated on
+                    <span datetime="{{ date  | htmlDateString}}">{{ page.updatedDate | readableDate  }}</span>. Created on
+                    <span datetime="{{ date  | htmlDateString}}">{{ page.date | readableDate }}</span>.</p>
+            {% else %}
+                <p class="text-sm italic">Created on
+                    <span datetime="{{ date  | htmlDateString}}">{{ page.date | readableDate }}</span>.</p>
+            {% endif %}
+        {% endif %}
+
+        <div class="content post">
+
+            {{ content | safe }}
+        </div>
+
+        {%- set nextPost = collections.adventofcode | getNextCollectionItem %}
+        {%- if nextPost %}
+            <p class="uppercase text-xs mt-6">Next</p>
+            <p class="font-bold mb-2">
+                <a href="{{ nextPost.url }}">{% if nextPost.data.title %}{{ nextPost.data.title }}{% else %}{{nextPost.fileSlug }}{%endif%}</a>
+            </p>
+        {% endif %}
+        {%- set previousPost = collections.adventofcode | getPreviousCollectionItem %}
+        {%- if previousPost %}
+            <p class="uppercase text-xs mt-6">Previous</p>
+
+            <p class="font-bold">
+                <a href="{{ previousPost.url }}">{% if previousPost.data.title %}{{ previousPost.data.title }}{% else %}{{previousPost.fileSlug }}{%endif%}</a>
+            </p>
+        {% endif %}
+    </div>
+{% endblock %}

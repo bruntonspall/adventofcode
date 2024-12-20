@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    {# Google Schema #}
+    <meta itemprop="name" content="{% if metaTitle %}{{ metaTitle }}{{ ' | '}}{% endif %}{% if title %}{{ title }}{{ ' | '}}{% endif %}{% if site.name %}{{ site.name }}{% endif %}">
+    <meta itemprop="description" content="{% if excerpt %}{{ excerpt }}{% else %}{{ site.description }}{% endif %}">
+
+    {# Twitter #}
+    <meta name="twitter:title" content="{% if metaTitle %}{{ metaTitle }}{{ ' | '}}{% endif %}{% if title %}{{ title }}{{ ' | '}}{% endif %}{% if site.name %}{{ site.name }}{% endif %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="{% if excerpt %}{{ excerpt }}{% else %}{{ site.description }}{% endif %}">
+    <meta name="twitter:site" content="{{ site.author.handle }}">
+    <meta name="twitter:creator" content="{{ site.author.handle }}">
+    <meta name="twitter:image:src" content="{{ site.url }}{{ site.baseUrl }}{{ site.images.twitter }}">
+
+    {# Open Graph #}
+    <meta name="og:title" content="{% if metaTitle %}{{ metaTitle }}{{ ' | '}}{% endif %}{% if title %}{{ title }}{{ ' | '}}{% endif %}{% if site.name %}{{ site.name }}{% endif %}">
+    <meta name="og:description" content="{% if excerpt %}{{ excerpt }}{% else %}{{ site.description }}{% endif %}">
+    <meta name="og:image" content="{{ site.url }}{{ site.baseUrl }}{{ site.images.og }}">
+    <meta name="og:url" content="{{ site.url }}{{ site.baseUrl }}">
+    <meta name="og:site_name" content="{{ site.name }}">
+    <meta name="og:locale" content="en_GB">
+    <meta name="og:type" content="website">
+		{%- css %}{% include "node_modules/prismjs/themes/prism-okaidia.css" %}{% endcss %}
+
+    <link rel="icon" type="image/x-icon" href="{{ site.baseUrl }}favicon.ico" />
+
+    <title>{% if metaTitle %}{{ metaTitle }}{% else %}{{ title }}{% endif %}{% if metaTitle or title %} | {% endif %}{{ site.name }}</title>
+
+    <link rel="stylesheet" href="{{ site.baseUrl }}assets/main.bundle.css">
+		<link rel="stylesheet" href="/style.css">
+		{%- js %}{% include "node_modules/@zachleat/heading-anchors/heading-anchors.js" %}{% endjs %}
+
+    {% block head %}{% endblock %}
+  </head>
+  <body class="flex flex-col min-h-screen">
+    {% include 'top-notice.njk' %}
+    {% include 'header.njk' %}
+    <main class="container mx-auto max-w-3xl p-8 grow">
+      {% block body %}{% endblock %}
+    </main>
+    {% include 'footer.njk' %}
+    {% include 'privacy-notice.njk' %}
+    <script src="{{ site.baseUrl }}assets/main.bundle.js"></script>
+  </body>
+</html>
+
+
+
+
+						{%- for tag in tags | filterTagList %}
+							<li>
+								<a href="/tags/{{ tag | slugify }}/" class="post-tag">{{ tag }}</a>
+								{%- if not loop.last %}, {% endif %}
+							</li>
+						{%- endfor %}
+					</ul>
+
+<hr>
+{%- if collections.post %}
+{%- assign previousPost = collections.post | getPreviousCollectionItem %}
+{%- assign nextPost = collections.post | getNextCollectionItem %}
+{%- endif %}
+
+{%- if collections.aoc2020 %}
+{%- assign previousPost = collections.aoc2020 | getPreviousCollectionItem %}
+{%- assign nextPost = collections.aoc2020 | getNextCollectionItem %}
+{%- endif %}
+{%- if collections.aoc2021 %}
+{%- assign previousPost = collections.aoc2021 | getPreviousCollectionItem %}
+{%- assign nextPost = collections.aoc2021 | getNextCollectionItem %}
+{%- endif %}
+{%- if collections.aoc2023 %}
+{%- assign previousPost = collections.aoc2023 | getPreviousCollectionItem %}
+{%- assign nextPost = collections.aoc2023 | getNextCollectionItem %}
+{%- endif %}
+					{%- if nextPost or previousPost %}
+						<section class="not-format">
+							<div class="flex justify-between items-center mb-6">
+								<h2 class="text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">Previously</h2>
+							</div>
+							<ul class="flex justify-between items-center mb-6">
+								{%- if previousPost %}
+									<li class="p-6 mb-6 text-base bg-white rounded-lg dark:bg-gray-900">
+										<a href="{{ previousPost.url }}">← Previous<br>
+											{{ post.data.title | default: post.fileSlug }} </a>
+									</li>
+								{% endif %}
+								{%- if nextPost %}
+									<li class="p-6 mb-6 text-base bg-white rounded-lg dark:bg-gray-900">
+										<a href="{{ nextPost.url }}">Next →<br>{{ post.data.title | default: post.fileSlug }}</a>
+									</li>
+								{% endif %}
+							</ul>
+						</section>
+
+					{%- endif %}
