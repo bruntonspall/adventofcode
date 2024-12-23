@@ -2,10 +2,10 @@
 * day14, Part 1.
 */
 
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
-type GeneratorResult = Vec<usize>;
-type RunResult = usize;
+use itertools::{Itertools, Position};
+use regex::Regex;
 
 /* Here's our coordinate, with an X and Y fields.  We're making sure it can be copied, clones, compared and printed */
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
@@ -65,14 +65,81 @@ impl std::ops::Add<Vector> for ToroidalCoordinate {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
+pub struct Robot {
+    position: ToroidalCoordinate,
+    velocity: Vector,
+}
+
+impl Robot {
+    pub fn position_at(self: &Self, time: i32) -> Self {
+        return Robot {
+            position: self.position + (self.velocity * time),
+            velocity: self.velocity,
+        };
+    }
+}
+
+pub fn count_quadrants(robots: &Vec<Robot>, partition_x: i32, partition_y: i32) -> Vec<Option<u8>> {
+    robots
+        .iter()
+        .map(|r| {
+            if r.position.x < partition_x && r.position.y < partition_y {
+                Some(1)
+            } else if r.position.x > partition_x && r.position.y < partition_y {
+                Some(2)
+            } else if r.position.x < partition_x && r.position.y > partition_y {
+                Some(3)
+            } else if r.position.x > partition_x && r.position.y > partition_y {
+                Some(4)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<Option<u8>>>()
+}
+
+type GeneratorResult = Vec<Robot>;
+type RunResult = usize;
+
+static mut WORLD_WIDTH: i32 = 101;
+static mut WORLD_HEIGHT: i32 = 103;
+
 #[aoc_generator(day14)]
 pub fn input_generator(input: &str) -> GeneratorResult {
-    todo!();
+    let re =
+        Regex::new(r"p=(\d+),(\d+) v=(-?\d+),(-?\d+)").expect("Regex compilation shouldn't fail!");
+    re.captures_iter(input)
+        .map(|c| c.extract())
+        .map(|(_, [x, y, dx, dy])| Robot {
+            position: ToroidalCoordinate {
+                x: x.parse::<i32>().unwrap(),
+                y: y.parse::<i32>().unwrap(),
+                width: unsafe { WORLD_WIDTH },
+                height: unsafe { WORLD_HEIGHT },
+            },
+            velocity: Vector {
+                dx: dx.parse::<i32>().unwrap(),
+                dy: dy.parse::<i32>().unwrap(),
+            },
+        })
+        .collect()
 }
 
 #[aoc(day14, part1, RunResult)]
 pub fn part1(input: &GeneratorResult) -> RunResult {
-    todo!();
+    unsafe {
+        count_quadrants(
+            &input.iter().map(|r| r.position_at(100)).collect(),
+            WORLD_WIDTH / 2,
+            WORLD_HEIGHT / 2,
+        )
+        .iter()
+        .flatten()
+        .counts()
+        .values()
+        .product()
+    }
 }
 
 /*
@@ -87,6 +154,8 @@ pub fn part2(input: &GeneratorResult) -> RunResult {
 
 #[cfg(test)]
 mod tests {
+    use assert_unordered::assert_eq_unordered;
+
     use crate::day14::*;
 
     #[test]
@@ -117,12 +186,115 @@ mod tests {
     }
 
     #[test]
-    fn test_generator() {}
+    fn test_generator() {
+        // Changing the constants is unsafe for multi-threaded code
+        unsafe {
+            WORLD_WIDTH = 11;
+            WORLD_HEIGHT = 7;
+        }
+        let input = "p=0,4 v=3,-3
+p=6,3 v=-1,-3";
+        assert_eq!(
+            input_generator(input),
+            vec![
+                Robot {
+                    position: ToroidalCoordinate {
+                        x: 0,
+                        y: 4,
+                        width: 11,
+                        height: 7
+                    },
+                    velocity: Vector { dx: 3, dy: -3 }
+                },
+                Robot {
+                    position: ToroidalCoordinate {
+                        x: 6,
+                        y: 3,
+                        width: 11,
+                        height: 7
+                    },
+                    velocity: Vector { dx: -1, dy: -3 }
+                },
+            ]
+        )
+    }
+
+    #[test]
+    fn test_sample_input() {
+        // Changing the constants is unsafe for multi-threaded code
+        unsafe {
+            WORLD_WIDTH = 11;
+            WORLD_HEIGHT = 7;
+        }
+
+        let input = "p=0,4 v=3,-3
+p=6,3 v=-1,-3
+p=10,3 v=-1,2
+p=2,0 v=2,-1
+p=0,0 v=1,3
+p=3,0 v=-2,-2
+p=7,6 v=-1,-3
+p=3,0 v=-1,-2
+p=9,3 v=2,3
+p=7,3 v=-1,2
+p=2,4 v=2,-3
+p=9,5 v=-3,-3";
+        let robots = input_generator(input);
+        let endstate: Vec<Robot> = robots.iter().map(|r| r.position_at(100)).collect();
+        #[rustfmt::skip]
+        assert_eq_unordered!(
+            endstate.iter().map(|robot|(robot.position.x, robot.position.y))
+            .collect(), 
+            vec![
+                (6,0), (6,0), (9,0),
+                (0,2),
+                (1,3),(2,3),
+                (5,4),
+                (3,5),(4,5),(4,5),
+                (1,6),(6,6),
+        ]);
+        unsafe {
+            let counts = count_quadrants(&endstate, WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
+            assert_eq_unordered!(
+                counts,
+                vec![
+                    Some(2),
+                    Some(2),
+                    Some(2),
+                    Some(1),
+                    None,
+                    None,
+                    None,
+                    Some(3),
+                    Some(3),
+                    Some(3),
+                    Some(3),
+                    Some(4)
+                ]
+            )
+        }
+    }
 
     #[test]
     fn test_part1() {
-        let input = "";
-        assert_eq!(part1(&input_generator(&input)), 0);
+        unsafe {
+            WORLD_WIDTH = 11;
+            WORLD_HEIGHT = 7;
+        }
+
+        let input = "p=0,4 v=3,-3
+p=6,3 v=-1,-3
+p=10,3 v=-1,2
+p=2,0 v=2,-1
+p=0,0 v=1,3
+p=3,0 v=-2,-2
+p=7,6 v=-1,-3
+p=3,0 v=-1,-2
+p=9,3 v=2,3
+p=7,3 v=-1,2
+p=2,4 v=2,-3
+p=9,5 v=-3,-3";
+        assert_eq!(part1(&input_generator(&input)), 12);
     }
 
     #[test]
