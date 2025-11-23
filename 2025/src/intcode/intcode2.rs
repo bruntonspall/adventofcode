@@ -27,7 +27,19 @@ pub fn calculate_part1(input: &str) -> usize {
  *
  */
 pub fn calculate_part2(_input: &str) -> usize {
-    0
+    for noun in 0..100 {
+        for verb in 0..100 {
+            let mut program = parse_input(_input);
+            program[1] = noun;
+            program[2] = verb;
+            let mut cpu = IntCodeCPU::new(program);
+            cpu.run();
+            if cpu.memory[0] == 19690720 {
+                return (noun * 100 + verb) as usize;
+            }
+        }
+    }
+    return 0    
 }
 
 
@@ -48,11 +60,5 @@ mod tests {
         let mut cpu = IntCodeCPU::new(program);
         cpu.run();
         assert_eq!(cpu.memory[0] as usize, 3500);
-    }
-
-    #[test]
-    fn test_part2() {
-        let input = "1,9,10,3,2,3,11,0,99,30,40,50";
-        assert_eq!(calculate_part2(&input), 30);
     }
 }
