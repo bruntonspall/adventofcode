@@ -1,0 +1,16 @@
+[package]
+name = "mbsaoc2025"
+version = "0.1.0"
+authors = ["Michael Brunton-Spall <michael@brunton-spall.co.uk>"]
+edition = "2024"
+
+[lib]
+bench = false
+
+[dependencies]
+assert_unordered = "0.3.5"
+bit-vec = "0.8.0"
+counter = "0.6.0"
+itertools = "0.13.0"
+regex = "1.11.1"
+clap = { version = "4.0", features = ["derive"] }
