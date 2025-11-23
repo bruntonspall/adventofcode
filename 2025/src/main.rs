@@ -1,6 +1,8 @@
 use std::fs;
 use clap::Parser;
 mod intcode;
+use std::time::Instant;
+
 
 const DAYS: &[Day] = &[
     Day {
@@ -38,6 +40,7 @@ fn main() -> std::io::Result<()> {
         }
         std::process::exit(1);
     }
+    let total_start = Instant::now();
 
     for day in DAYS {
         match args.year {
@@ -48,22 +51,27 @@ fn main() -> std::io::Result<()> {
             Some(d) if d != day.day => continue,
             _ => {}
         }
-        println!("Day {} — {}", day.name, day.filename);
 
         match fs::read_to_string(&day.filename) {
             Ok(content) => {
+                let before = Instant::now();
                 let part1 = (day.solve_part1)(&content);
+                let p1_dur = before.elapsed();
 
+                let before = Instant::now();
                 let part2 = (day.solve_part2)(&content);
+                let p2_dur = before.elapsed();
 
-                println!("  Part 1: {}", part1);
-                println!("  Part 2: {}", part2);
+                println!("  Part 1: {} in {} ms", part1, p1_dur.as_millis());
+                println!("  Part 2: {} in {} ms", part2, p2_dur.as_millis());
             }
             Err(e) => {
                 println!("  Error reading file: {}", e);
             }
         }
+        println!("Day {} — {}", day.name, day.filename);
 
     }
+    println!("Total time: {} ms", total_start.elapsed().as_millis());
     Ok(())
 }
