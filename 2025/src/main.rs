@@ -13,6 +13,14 @@ const DAYS: &[Day] = &[
         solve_part1: intcode::intcode2::calculate_part1,
         solve_part2: intcode::intcode2::calculate_part2,
     },
+    Day {
+        year: 2019,
+        day: 5,
+        name: "Intcode 2019 Day 5",
+        filename: "input/intcode/day05.txt",
+        solve_part1: intcode::intcode5::calculate_part1,
+        solve_part2: intcode::intcode5::calculate_part2,
+    },
     // Add more days here as needed
 ];
 struct Day {
