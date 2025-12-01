@@ -2,11 +2,11 @@
 
 use crate::intcode::intcodecpu::IntCodeCPU;
 
-fn parse_input(_input: &str) -> Vec<u32> {
+fn parse_input(_input: &str) -> Vec<i32> {
     _input
         .trim()
         .split(',')
-        .map(|s| s.parse::<u32>().expect("Failed to parse integer"))
+        .map(|s| s.parse::<i32>().expect("Failed to parse integer"))
         .collect()
 }
 

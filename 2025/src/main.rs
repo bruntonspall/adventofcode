@@ -51,6 +51,7 @@ fn main() -> std::io::Result<()> {
     let total_start = Instant::now();
 
     for day in DAYS {
+
         match args.year {
             Some(y) if y != day.year => continue,
             _ => {}
@@ -59,7 +60,7 @@ fn main() -> std::io::Result<()> {
             Some(d) if d != day.day => continue,
             _ => {}
         }
-
+        println!("Day {} — {}", day.name, day.filename);
         match fs::read_to_string(&day.filename) {
             Ok(content) => {
                 let before = Instant::now();
@@ -77,7 +78,6 @@ fn main() -> std::io::Result<()> {
                 println!("  Error reading file: {}", e);
             }
         }
-        println!("Day {} — {}", day.name, day.filename);
 
     }
     println!("Total time: {} ms", total_start.elapsed().as_millis());
