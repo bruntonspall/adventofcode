@@ -11,7 +11,8 @@ fn parse_input(_input: &str) -> Vec<i32> {
 }
 
 fn rotate_dial(start: i32, turn: i32) -> i32 {
-    (start + turn + 100) % 100
+    // (start + turn + 100) % 100
+    (start + turn).rem_euclid(100)
 }
 
 fn execute_instructions(start: i32, instructions: &Vec<i32>) -> Vec<i32> {
@@ -28,9 +29,14 @@ fn execute_instructions_part2(start: i32, instructions: &Vec<i32>) -> Vec<i32> {
     let mut dial = start;
     let mut results = Vec::new();
     for &instruction in instructions {
+        let mut total = instruction;
         let mut passes = 0;
-        passes += instruction.abs() / 100;
-        if dial != 0 && (dial+(instruction%100) >= 100 || dial+(instruction%100) <= 0) {
+        while total.abs() >= 100 {
+            passes += 1;
+            total -= total.signum() * 100;
+        }
+        let target = dial + total;
+        if target > 99 || (dial != 0 && target <= 0) {
             passes += 1;
         }
         dial = rotate_dial(dial, instruction);
@@ -88,6 +94,15 @@ L82";
         );
     }
 
+    #[test]
+    fn test_rotate_dial() {
+        assert_eq!(rotate_dial(50, 15), 65);
+        assert_eq!(rotate_dial(50, -15), 35);
+        assert_eq!(rotate_dial(90, 15), 5);
+        assert_eq!(rotate_dial(10, -15), 95);
+    }
+
+
         #[test]
     fn test_execute_instructions_part2() {
         assert_eq!(
@@ -109,6 +124,10 @@ L82";
         assert_eq!(
             execute_instructions_part2(0, &vec![350]),
             vec![3]
+        );
+        assert_eq!(
+            execute_instructions_part2(0, &vec![500]),
+            vec![5]
         );
     }
 
