@@ -24,6 +24,20 @@ fn execute_instructions(start: i32, instructions: &Vec<i32>) -> Vec<i32> {
     results
 }
 
+fn execute_instructions_part2(start: i32, instructions: &Vec<i32>) -> Vec<i32> {
+    let mut dial = start;
+    let mut results = Vec::new();
+    for &instruction in instructions {
+        let mut passes = 0;
+        passes += instruction.abs() / 100;
+        if dial != 0 && (dial+(instruction%100) >= 100 || dial+(instruction%100) <= 0) {
+            passes += 1;
+        }
+        dial = rotate_dial(dial, instruction);
+        results.push(passes);
+    }
+    results
+}
 /*
 * day2, Part 1.
 */
@@ -38,8 +52,10 @@ pub fn calculate_part1(input: &str) -> usize {
  * day2, Part 2
  *
  */
-pub fn calculate_part2(_input: &str) -> usize {
-    0
+pub fn calculate_part2(input: &str) -> usize {
+        execute_instructions_part2(50, &parse_input(input))
+        .into_iter()
+        .sum::<i32>() as usize
 }
 
 #[cfg(test)]
@@ -66,19 +82,33 @@ L82";
 
     #[test]
     fn test_execute_instructions() {
-        let input = "L68
-L30
-R48
-L5
-R60
-L55
-L1
-L99
-R14
-L82";
         assert_eq!(
-            execute_instructions(50, &parse_input(&input)),
+            execute_instructions(50, &vec![-68, -30, 48, -5, 60, -55, -1, -99, 14, -82]),
             vec![82, 52, 0, 95, 55, 0, 99, 0, 14, 32]
+        );
+    }
+
+        #[test]
+    fn test_execute_instructions_part2() {
+        assert_eq!(
+            execute_instructions_part2(50, &vec![-68, -30, 48, -5, 60, -55, -1, -99, 14, -82]),
+            vec![1, 0, 1, 0, 1, 1, 0, 1, 0, 1]
+        );
+        assert_eq!(
+            execute_instructions_part2(50, &vec![-68, -30, 48, -5, 60, -55, -1, -99, 14, 1000]),
+            vec![1, 0, 1, 0, 1, 1, 0, 1, 0, 10]
+        );
+        assert_eq!(
+            execute_instructions_part2(50, &vec![-68, -30, 48, -5, 60, -55, -1, -99, 14, 1098]),
+            vec![1, 0, 1, 0, 1, 1, 0, 1, 0, 11]
+        );
+        assert_eq!(
+            execute_instructions_part2(0, &vec![-350]),
+            vec![3]
+        );
+        assert_eq!(
+            execute_instructions_part2(0, &vec![350]),
+            vec![3]
         );
     }
 
@@ -95,5 +125,21 @@ L99
 R14
 L82";
         assert_eq!(calculate_part1(&input), 3);
+    }
+    #[test]
+    fn test_example_part2() {
+        let input = "L68
+L30
+R48
+L5
+R60
+L55
+L1
+L99
+R14
+L82";
+        assert_eq!(calculate_part2(&input), 6);
+        assert_eq!(calculate_part2("L320"), 3);
+        assert_eq!(calculate_part2("R320"), 3);
     }
 }
