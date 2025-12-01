@@ -2,6 +2,7 @@ use std::fs;
 use clap::Parser;
 mod intcode;
 use std::time::Instant;
+mod day1;
 
 
 const DAYS: &[Day] = &[
@@ -20,6 +21,14 @@ const DAYS: &[Day] = &[
         filename: "input/intcode/day05.txt",
         solve_part1: intcode::intcode5::calculate_part1,
         solve_part2: intcode::intcode5::calculate_part2,
+    },
+    Day {
+        year: 2025,
+        day: 1,
+        name: "2025 Day 1",
+        filename: "input/2025/day01.txt",
+        solve_part1: day1::calculate_part1,
+        solve_part2: day1::calculate_part2,
     },
     // Add more days here as needed
 ];
