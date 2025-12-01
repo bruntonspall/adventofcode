@@ -59,7 +59,7 @@ pub fn calculate_part1(input: &str) -> usize {
  *
  */
 pub fn calculate_part2(input: &str) -> usize {
-        execute_instructions_part2(50, &parse_input(input))
+    execute_instructions_part2(50, &parse_input(input))
         .into_iter()
         .sum::<i32>() as usize
 }
@@ -100,10 +100,11 @@ L82";
         assert_eq!(rotate_dial(50, -15), 35);
         assert_eq!(rotate_dial(90, 15), 5);
         assert_eq!(rotate_dial(10, -15), 95);
+        assert_eq!(rotate_dial(50, 320), 70);
+        assert_eq!(rotate_dial(50, -320), 30);
     }
 
-
-        #[test]
+    #[test]
     fn test_execute_instructions_part2() {
         assert_eq!(
             execute_instructions_part2(50, &vec![-68, -30, 48, -5, 60, -55, -1, -99, 14, -82]),
@@ -117,18 +118,9 @@ L82";
             execute_instructions_part2(50, &vec![-68, -30, 48, -5, 60, -55, -1, -99, 14, 1098]),
             vec![1, 0, 1, 0, 1, 1, 0, 1, 0, 11]
         );
-        assert_eq!(
-            execute_instructions_part2(0, &vec![-350]),
-            vec![3]
-        );
-        assert_eq!(
-            execute_instructions_part2(0, &vec![350]),
-            vec![3]
-        );
-        assert_eq!(
-            execute_instructions_part2(0, &vec![500]),
-            vec![5]
-        );
+        assert_eq!(execute_instructions_part2(0, &vec![-350]), vec![3]);
+        assert_eq!(execute_instructions_part2(0, &vec![350]), vec![3]);
+        assert_eq!(execute_instructions_part2(0, &vec![500]), vec![5]);
     }
 
     #[test]
