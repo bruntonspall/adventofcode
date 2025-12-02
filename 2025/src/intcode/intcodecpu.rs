@@ -130,7 +130,7 @@ impl IntCodeCPU {
             output: Vec::new(),
         }
     }
-    pub fn new_with_IO(program: Vec<i32>, input: Vec<i32>) -> Self {
+    pub fn new_with_io(program: Vec<i32>, input: Vec<i32>) -> Self {
         IntCodeCPU {
             memory: program,
             pc: 0,
@@ -261,7 +261,7 @@ mod tests {
     }
     #[test]
     fn test_intcode_input() {
-        let mut cpu = IntCodeCPU::new_with_IO(vec![3, 2, 0], vec![99]);
+        let mut cpu = IntCodeCPU::new_with_io(vec![3, 2, 0], vec![99]);
         assert_eq!(cpu.input, vec![99]);
         assert_eq!(cpu.memory[2], 0);
         cpu.execute();
@@ -271,7 +271,7 @@ mod tests {
     }
     #[test]
     fn test_intcode_output() {
-        let mut cpu = IntCodeCPU::new_with_IO(vec![4, 2, 99], vec![]);
+        let mut cpu = IntCodeCPU::new_with_io(vec![4, 2, 99], vec![]);
         assert_eq!(cpu.output, vec![]);
         cpu.execute();
         assert_eq!(cpu.output, vec![99]);
@@ -279,7 +279,7 @@ mod tests {
     }
     #[test]
     fn test_intcode_immediate_output() {
-        let mut cpu = IntCodeCPU::new_with_IO(vec![104, 2, 99], vec![]);
+        let mut cpu = IntCodeCPU::new_with_io(vec![104, 2, 99], vec![]);
         assert_eq!(cpu.output, vec![]);
         cpu.execute();
         assert_eq!(cpu.output, vec![2]);
@@ -288,7 +288,7 @@ mod tests {
     #[test]
     fn test_intcode_intcode_mul_io() {
         let mut cpu =
-            IntCodeCPU::new_with_IO(vec![3, 9, 1001, 9, 5, 10, 4, 10, 99, 0, 0], vec![52]);
+            IntCodeCPU::new_with_io(vec![3, 9, 1001, 9, 5, 10, 4, 10, 99, 0, 0], vec![52]);
         assert_eq!(cpu.output, vec![]);
         cpu.run();
         assert_eq!(cpu.memory, vec![3, 9, 1001, 9, 5, 10, 4, 10, 99, 52, 57]);

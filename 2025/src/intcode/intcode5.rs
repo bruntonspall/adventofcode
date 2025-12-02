@@ -13,7 +13,7 @@ fn parse_input(_input: &str) -> Vec<i32> {
 */
 pub fn calculate_part1(input: &str) -> usize {
     let program = parse_input(input);
-    let mut cpu = IntCodeCPU::new_with_IO(program, vec![1]);
+    let mut cpu = IntCodeCPU::new_with_io(program, vec![1]);
     cpu.run();
     println!("Output: {:?}", cpu.output);
     cpu.output.last().cloned().unwrap_or(0) as usize

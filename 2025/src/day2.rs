@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 pub fn parse_id_range(id_range: &str) -> (u64, u64) {
     let mut ids = id_range
         .split("-")
