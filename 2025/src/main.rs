@@ -4,6 +4,7 @@ mod intcode;
 use std::time::Instant;
 mod day1;
 mod day2;
+mod day3;
 
 
 const DAYS: &[Day] = &[
@@ -38,6 +39,14 @@ const DAYS: &[Day] = &[
         filename: "input/2025/day02.txt",
         solve_part1: day2::calculate_part1,
         solve_part2: day2::calculate_part2,
+    },
+    Day {
+        year: 2025,
+        day: 3,
+        name: "2025 Day 3",
+        filename: "input/2025/day03.txt",
+        solve_part1: day3::calculate_part1,
+        solve_part2: day3::calculate_part2,
     },
     // Add more days here as needed
 ];
