@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use clap::value_parser;
+
 use crate::utils::Coordinate;
 
 fn neighbours(coord: &Coordinate) -> HashSet<Coordinate> {
@@ -38,8 +40,25 @@ pub fn calculate_part1(input: &str) -> usize {
         .count()
 }
 
-pub fn calculate_part2(_input: &str) -> usize {
-    0
+pub fn calculate_part2(input: &str) -> usize {
+    let mut grid = parse_grid(input);
+    let mut has_valid_neighbours = true;
+    let mut total = 0;
+    let mut valid_neighbours = HashSet::new();
+    while has_valid_neighbours {
+        valid_neighbours = grid
+            .iter()
+            .filter(|coord| count_neighbours(&grid, coord) < 4)
+            .collect();
+        has_valid_neighbours = valid_neighbours.len() > 0;
+        total += valid_neighbours.len();
+        grid = grid
+            .iter()
+            .filter(|coordinate| !valid_neighbours.contains(coordinate))
+            .copied()
+            .collect();
+    }
+    total
 }
 
 #[cfg(test)]
@@ -48,10 +67,7 @@ mod tests {
 
     use assert_unordered::assert_eq_unordered;
 
-    use crate::{
-        day4::{calculate_part1, count_neighbours, neighbours, parse_grid},
-        utils::Coordinate,
-    };
+    use crate::{day4::*, utils::Coordinate};
 
     #[test]
     fn test_find_neighbours() {
@@ -144,5 +160,13 @@ mod tests {
 .@@@@@@@@.
 @.@.@@@.@.";
         assert_eq!(13, calculate_part1(input));
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = "..@.\n@...\n..@.\n.@..";
+        assert_eq!(4, calculate_part2(input));
+        let input = "@@@.\n@@@.\n@@@.\n....";
+        assert_eq!(9, calculate_part2(input));
     }
 }
