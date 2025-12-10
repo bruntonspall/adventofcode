@@ -18,7 +18,7 @@ pub fn calculate_part1(input: &str) -> usize {
         .sum::<u32>() as usize
 }
 
-pub fn calculate_part2(input: &str) -> usize {
+pub fn calculate_part2(_input: &str) -> usize {
     0
 }
 

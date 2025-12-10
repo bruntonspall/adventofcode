@@ -1,7 +1,7 @@
-use std::fmt;
+use std::fmt::{self};
 
 /* Here's our coordinate, with an X and Y fields.  We're making sure it can be copied, clones, compared and printed */
-#[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
+#[derive(Copy, Clone, PartialEq, Hash, Eq)]
 pub struct Coordinate {
     pub x: i32,
     pub y: i32,
@@ -55,6 +55,12 @@ impl std::ops::Mul<i32> for Coordinate {
 
 impl fmt::Display for Coordinate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({},{})", self.x, self.y)
+    }
+}
+
+impl fmt::Debug for Coordinate {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({},{})", self.x, self.y)
     }
 }

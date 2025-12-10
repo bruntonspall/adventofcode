@@ -1,11 +1,12 @@
-use std::fs;
 use clap::Parser;
+use std::fs;
 mod intcode;
 use std::time::Instant;
 mod day1;
 mod day2;
 mod day3;
-
+mod day4;
+mod utils;
 
 const DAYS: &[Day] = &[
     Day {
@@ -48,6 +49,14 @@ const DAYS: &[Day] = &[
         solve_part1: day3::calculate_part1,
         solve_part2: day3::calculate_part2,
     },
+    Day {
+        year: 2025,
+        day: 4,
+        name: "2025 Day 4",
+        filename: "input/2025/day04.txt",
+        solve_part1: day4::calculate_part1,
+        solve_part2: day4::calculate_part2,
+    },
     // Add more days here as needed
 ];
 struct Day {
@@ -78,7 +87,6 @@ fn main() -> std::io::Result<()> {
     let total_start = Instant::now();
 
     for day in DAYS {
-
         match args.year {
             Some(y) if y != day.year => continue,
             _ => {}
@@ -105,7 +113,6 @@ fn main() -> std::io::Result<()> {
                 println!("  Error reading file: {}", e);
             }
         }
-
     }
     println!("Total time: {} ms", total_start.elapsed().as_millis());
     Ok(())
